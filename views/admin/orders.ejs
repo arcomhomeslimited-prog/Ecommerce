@@ -1,0 +1,56 @@
+<%- include('_header') %>
+<%
+  const link = (changes) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) if (!(k in changes)) params.set(k, v);
+    for (const [k, v] of Object.entries(changes)) if (v) params.set(k, v);
+    const s = params.toString();
+    return '/admin/orders' + (s ? '?' + s : '');
+  };
+  const all = Object.values(counts).reduce((a, b) => a + b, 0);
+  const exportQs = new URLSearchParams(Object.entries(query).filter(([k]) => k !== 'page')).toString();
+%>
+<div class="page-head">
+  <div><h1>Orders</h1><p class="muted"><%= pg.total %> order<%= pg.total === 1 ? '' : 's' %></p></div>
+  <a href="/admin/orders-export.csv<%= exportQs ? '?' + exportQs : '' %>" class="btn btn-ghost">Export CSV</a>
+</div>
+
+<div class="tabs">
+  <a href="<%= link({ status: '', page: '' }) %>" class="<%= !query.status ? 'on' : '' %>">All <span><%= all %></span></a>
+  <% ORDER_STATUSES.forEach(s => { %>
+    <a href="<%= link({ status: s, page: '' }) %>" class="<%= query.status === s ? 'on' : '' %>"><%= s[0].toUpperCase() + s.slice(1) %> <span><%= counts[s] || 0 %></span></a>
+  <% }) %>
+</div>
+
+<form method="get" class="filter-bar">
+  <% if (query.status) { %><input type="hidden" name="status" value="<%= query.status %>"><% } %>
+  <input type="search" name="q" value="<%= q %>" placeholder="Order no., name, email or postcode">
+  <label class="inline-label">From <input type="date" name="from" value="<%= query.from || '' %>"></label>
+  <label class="inline-label">To <input type="date" name="to" value="<%= query.to || '' %>"></label>
+  <button class="btn">Filter</button>
+  <% if (q || query.from || query.to) { %><a href="<%= link({ q: '', from: '', to: '', page: '' }) %>" class="link">Clear</a><% } %>
+</form>
+
+<section class="panel panel-flush">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Payment</th><th>Status</th><th class="num">Total</th></tr></thead>
+      <tbody>
+        <% if (!orders.length) { %><tr><td colspan="7" class="empty-cell">No orders found.</td></tr><% } %>
+        <% orders.forEach(o => { %>
+          <tr class="row-link" data-href="/admin/orders/<%= o.id %>">
+            <td><a href="/admin/orders/<%= o.id %>" class="strong"><%= o.number %></a></td>
+            <td><%= formatDate(o.created_at, true) %></td>
+            <td><%= o.first_name %> <%= o.last_name %><br><span class="muted small"><%= o.postcode %></span></td>
+            <td><%= o.item_count %></td>
+            <td><span class="pay pay-<%= o.payment_status %>"><%= o.payment_status %></span></td>
+            <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+            <td class="num strong"><%= money(o.total) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('_pagination', { pg, link }) %>
+<%- include('_footer') %>

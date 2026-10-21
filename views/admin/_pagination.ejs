@@ -1,0 +1,7 @@
+<% if (pg.pages > 1) { %>
+<nav class="pager" aria-label="Pages">
+  <% if (pg.page > 1) { %><a href="<%= link({ page: pg.page - 1 }) %>">‹ Prev</a><% } %>
+  <span>Page <%= pg.page %> of <%= pg.pages %></span>
+  <% if (pg.page < pg.pages) { %><a href="<%= link({ page: pg.page + 1 }) %>">Next ›</a><% } %>
+</nav>
+<% } %>

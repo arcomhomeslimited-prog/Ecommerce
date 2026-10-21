@@ -1,0 +1,29 @@
+<%- include('_header') %>
+<div class="page-head"><div><h1>Messages</h1><p class="muted">Enquiries from the contact form.</p></div></div>
+<div class="inbox">
+  <section class="panel panel-flush inbox-list">
+    <% if (!messages.length) { %><p class="muted padded">No messages yet.</p><% } %>
+    <% messages.forEach(m => { %>
+      <a href="/admin/messages?id=<%= m.id %>" class="inbox-item <%= m.is_read ? '' : 'unread' %> <%= selected && selected.id === m.id ? 'on' : '' %>">
+        <span class="inbox-from"><%= m.name %><span class="muted small"><%= formatDate(m.created_at) %></span></span>
+        <span class="inbox-subject"><%= m.subject || '(no subject)' %></span>
+        <span class="muted small inbox-snippet"><%= m.body.slice(0, 90) %></span>
+      </a>
+    <% }) %>
+  </section>
+  <section class="panel inbox-view">
+    <% if (selected) { %>
+      <h2><%= selected.subject || '(no subject)' %></h2>
+      <p class="muted small">From <strong><%= selected.name %></strong> &lt;<a href="mailto:<%= selected.email %>" class="link"><%= selected.email %></a>&gt;<%= selected.phone ? ' · ' + selected.phone : '' %> · <%= formatDate(selected.created_at, true) %></p>
+      <div class="message-body"><%= selected.body %></div>
+      <div class="form-actions">
+        <a href="mailto:<%= selected.email %>?subject=<%= encodeURIComponent('Re: ' + (selected.subject || 'Your enquiry')) %>" class="btn btn-primary">Reply by email</a>
+        <form action="/admin/messages/<%= selected.id %>/unread" method="post"><button class="btn btn-ghost">Mark unread</button></form>
+        <form action="/admin/messages/<%= selected.id %>/delete" method="post"><button class="btn btn-ghost danger" data-confirm="Delete this message?">Delete</button></form>
+      </div>
+    <% } else { %>
+      <p class="muted">Select a message to read it.</p>
+    <% } %>
+  </section>
+</div>
+<%- include('_footer') %>

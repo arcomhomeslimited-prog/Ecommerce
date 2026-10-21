@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<div class="wrap auth-page">
+  <div class="card-panel auth-card">
+    <h1 class="page-title">Sign in</h1>
+    <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+    <form action="/account/login" method="post" class="stack">
+      <input type="hidden" name="next" value="<%= next %>">
+      <label class="field"><span>Email</span><input type="email" name="email" value="<%= form.email || '' %>" required autocomplete="email"></label>
+      <label class="field"><span>Password</span><input type="password" name="password" required autocomplete="current-password"></label>
+      <button class="btn btn-block btn-lg">Sign in</button>
+    </form>
+    <p class="center-block muted">New to ArcomHomes? <a href="/account/register">Create an account</a></p>
+  </div>
+</div>
+<%- include('../partials/footer') %>

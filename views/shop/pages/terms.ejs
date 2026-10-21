@@ -1,0 +1,13 @@
+<%- include('_top') %>
+<p class="notice">This is template text. Please have your terms reviewed by a legal professional before launching.</p>
+<h2>1. About us</h2>
+<p><%= settings.store_address %><%= settings.company_number ? ', company number ' + settings.company_number : '' %>. Contact: <%= settings.store_email %>.</p>
+<h2>2. Orders</h2>
+<p>Your order is an offer to buy. A contract is formed when we email to confirm dispatch. We may decline orders, for example if an item is out of stock or mispriced.</p>
+<h2>3. Prices &amp; payment</h2>
+<p>Prices are in pounds sterling and include VAT. Delivery charges are shown at checkout.</p>
+<h2>4. Cancellation</h2>
+<p>Under the Consumer Contracts Regulations you may cancel within 14 days of delivery. We extend this to 30 days for unused items – see our <a href="/returns">returns policy</a>.</p>
+<h2>5. Liability</h2>
+<p>Nothing in these terms limits our liability for death or personal injury caused by negligence, fraud, or anything that cannot be limited by law.</p>
+<%- include('_bottom') %>

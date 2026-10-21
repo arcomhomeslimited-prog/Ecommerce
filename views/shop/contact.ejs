@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<div class="wrap narrow-page">
+  <h1 class="page-title">Contact us</h1>
+  <div class="contact-grid">
+    <form action="/contact" method="post" class="card-panel form-grid">
+      <label class="field <%= errors.name ? 'has-error' : '' %>"><span>Name</span><input name="name" value="<%= form.name || '' %>" required><% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %></label>
+      <label class="field <%= errors.email ? 'has-error' : '' %>"><span>Email</span><input type="email" name="email" value="<%= form.email || '' %>" required><% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %></label>
+      <label class="field"><span>Phone <em>(optional)</em></span><input type="tel" name="phone" value="<%= form.phone || '' %>"></label>
+      <label class="field"><span>Subject</span><input name="subject" value="<%= form.subject || query.subject || '' %>"></label>
+      <label class="field span-2 <%= errors.body ? 'has-error' : '' %>"><span>Message</span><textarea name="body" rows="6" required><%= form.body || '' %></textarea><% if (errors.body) { %><small class="error"><%= errors.body %></small><% } %></label>
+      <div class="span-2"><button class="btn btn-lg">Send message</button></div>
+    </form>
+    <aside class="contact-aside">
+      <h2>Talk to our team</h2>
+      <p>We’re here Monday to Friday, 9am – 5:30pm, to help with product advice, orders and trade enquiries.</p>
+      <p><strong>Email</strong><br><a href="mailto:<%= settings.store_email %>"><%= settings.store_email %></a></p>
+      <p><strong>Phone</strong><br><a href="tel:<%= settings.store_phone.replace(/\s/g, '') %>"><%= settings.store_phone %></a></p>
+      <p><strong>Address</strong><br><%= settings.store_address %></p>
+    </aside>
+  </div>
+</div>
+<%- include('../partials/footer') %>

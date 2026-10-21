@@ -1,0 +1,129 @@
+<%- include('_header') %>
+<%
+  const delta = (now, before) => {
+    if (!before) return now ? { text: 'New', dir: 'up' } : null;
+    const pct = Math.round(((now - before) / before) * 100);
+    return { text: `${pct > 0 ? '+' : ''}${pct}%`, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
+  };
+  const tiles = [
+    ['Revenue', money(cur.revenue), delta(cur.revenue, prev.revenue)],
+    ['Orders', cur.orders.toLocaleString('en-GB'), delta(cur.orders, prev.orders)],
+    ['Average order value', money(aov), delta(aov, prevAov)],
+    ['New customers', newCustomers.toLocaleString('en-GB'), delta(newCustomers, prevCustomers)]
+  ];
+  const statusTotal = statusCounts.reduce((s, r) => s + r.n, 0) || 1;
+  const statusMax = Math.max(1, ...statusCounts.map(r => r.n));
+%>
+<div class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="muted">Paid orders over the last <%= days %> days, compared with the previous <%= days %> days.</p>
+  </div>
+  <div class="segmented" role="group" aria-label="Date range">
+    <% [7, 30, 90].forEach(d => { %><a href="/admin?days=<%= d %>" class="<%= days === d ? 'on' : '' %>"><%= d %> days</a><% }) %>
+  </div>
+</div>
+
+<section class="kpis">
+  <% tiles.forEach(([label, value, d]) => { %>
+    <div class="kpi">
+      <p class="kpi-label"><%= label %></p>
+      <p class="kpi-value"><%= value %></p>
+      <% if (d) { %><p class="kpi-delta <%= d.dir %>"><span aria-hidden="true"><%= d.dir === 'up' ? '▲' : d.dir === 'down' ? '▼' : '–' %></span> <%= d.text %> <span class="muted">vs previous <%= days %> days</span></p><% } %>
+    </div>
+  <% }) %>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <div>
+      <h2>Revenue per day</h2>
+      <p class="muted small">Paid, processing, shipped and delivered orders · inc. VAT</p>
+    </div>
+  </div>
+  <div class="chart" data-chart>
+    <script type="application/json" data-chart-data><%- JSON.stringify(series).replace(/</g, '\\u003c') %></script>
+    <div class="chart-tooltip" data-chart-tooltip hidden></div>
+  </div>
+  <details class="chart-table">
+    <summary>View as table</summary>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Date</th><th class="num">Orders</th><th class="num">Revenue</th></tr></thead>
+        <tbody>
+          <% series.slice().reverse().forEach(r => { %><tr><td><%= formatDate(r.d) %></td><td class="num"><%= r.orders %></td><td class="num"><%= money(r.revenue) %></td></tr><% }) %>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<div class="grid-2">
+  <section class="panel">
+    <div class="panel-head"><h2>Recent orders</h2><a href="/admin/orders" class="link">View all</a></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          <% recentOrders.forEach(o => { %>
+            <tr class="row-link" data-href="/admin/orders/<%= o.id %>">
+              <td><a href="/admin/orders/<%= o.id %>"><%= o.number %></a><br><span class="muted small"><%= formatDate(o.created_at, true) %></span></td>
+              <td><%= o.first_name %> <%= o.last_name %></td>
+              <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+              <td class="num"><%= money(o.total) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Orders by status</h2><span class="muted small">Last <%= days %> days</span></div>
+    <% if (!statusCounts.length) { %><p class="muted">No orders in this period.</p><% } %>
+    <ul class="hbars">
+      <% ORDER_STATUSES.forEach(s => { const row = statusCounts.find(r => r.status === s); if (!row) return; %>
+        <li title="<%= row.n %> <%= s %> orders (<%= Math.round(row.n / statusTotal * 100) %>%)">
+          <span class="hbar-label"><span class="status status-<%= s %>"><%= s %></span></span>
+          <span class="hbar-track"><span class="hbar-fill" style="width: <%= Math.max(2, row.n / statusMax * 100) %>%"></span></span>
+          <span class="hbar-value"><%= row.n %></span>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <div class="panel-head"><h2>Top products</h2><span class="muted small">By revenue, last <%= days %> days</span></div>
+    <% if (!topProducts.length) { %><p class="muted">No sales in this period.</p><% } %>
+    <ul class="item-list">
+      <% topProducts.forEach((p, i) => { %>
+        <li>
+          <img src="<%= p.image || '/images/placeholder.svg' %>" alt="">
+          <div><a href="/admin/products/<%= p.product_id %>"><%= p.name %></a><span class="muted small"><%= p.finish %> · <%= p.units %> sold</span></div>
+          <strong><%= money(p.revenue) %></strong>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Low stock</h2><a href="/admin/products?stock=low" class="link">Manage stock</a></div>
+    <% if (!lowStock.length) { %><p class="muted">Everything is well stocked.</p><% } %>
+    <ul class="item-list">
+      <% lowStock.forEach(p => { %>
+        <li>
+          <img src="<%= p.image || '/images/placeholder.svg' %>" alt="">
+          <div><a href="/admin/products/<%= p.id %>"><%= p.name %></a><span class="muted small"><%= p.finish %> · <%= p.sku %></span></div>
+          <form action="/admin/products/<%= p.id %>/stock" method="post" class="inline-stock">
+            <label class="sr-only" for="st<%= p.id %>">Stock</label>
+            <input id="st<%= p.id %>" type="number" name="stock" min="0" value="<%= p.stock %>" class="<%= p.stock <= 0 ? 'is-out' : 'is-low' %>">
+            <button class="btn btn-sm">Save</button>
+          </form>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+</div>
+<%- include('_footer') %>

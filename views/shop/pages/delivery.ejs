@@ -1,0 +1,12 @@
+<%- include('_top') %>
+<table class="spec-table">
+  <tr><th>Standard UK mainland</th><td><%= money(settings.shipping_flat_rate) %> · 2–4 working days</td></tr>
+  <tr><th>Orders over <%= money(settings.free_shipping_threshold) %></th><td>Free</td></tr>
+  <tr><th>Large items (baths, vanity units)</th><td>Two-person delivery to your room of choice, 3–7 working days</td></tr>
+  <tr><th>Highlands, Islands &amp; Northern Ireland</th><td>Please <a href="/contact">contact us</a> for a quote</td></tr>
+</table>
+<h2>Dispatch</h2>
+<p>In-stock orders placed before 2pm Monday–Friday are usually dispatched the same or next working day. You’ll receive tracking details by email as soon as your order leaves our warehouse.</p>
+<h2>Checking your delivery</h2>
+<p>Please check items for damage before signing. If anything arrives damaged, keep the packaging and contact us within 48 hours with photos and we’ll send a replacement.</p>
+<%- include('_bottom') %>

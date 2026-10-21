@@ -1,0 +1,28 @@
+<%- include('_header') %>
+<%
+  const value = code.value === undefined || code.value === null ? '' : code.type === 'fixed' ? (code.value / 100).toFixed(2) : code.value;
+%>
+<div class="page-head"><div><a href="/admin/discounts" class="back">‹ Discount codes</a><h1><%= code.id ? code.code : 'New discount code' %></h1></div></div>
+
+<form action="/admin/discounts<%= code.id ? '/' + code.id : '' %>" method="post" class="panel narrow-form">
+  <label class="field <%= errors.code ? 'has-error' : '' %>"><span>Code</span><input name="code" value="<%= code.code || '' %>" required class="code-input" placeholder="e.g. SPRING20"><% if (errors.code) { %><small class="error"><%= errors.code %></small><% } %></label>
+  <div class="form-grid">
+    <label class="field"><span>Type</span>
+      <select name="type">
+        <option value="percent" <%= code.type !== 'fixed' ? 'selected' : '' %>>Percentage off</option>
+        <option value="fixed" <%= code.type === 'fixed' ? 'selected' : '' %>>Fixed amount off (£)</option>
+      </select>
+    </label>
+    <label class="field <%= errors.value ? 'has-error' : '' %>"><span>Value</span><input name="value" inputmode="decimal" value="<%= value %>" required><% if (errors.value) { %><small class="error"><%= errors.value %></small><% } %></label>
+    <label class="field"><span>Minimum spend (£) <em>optional</em></span><input name="min_spend" inputmode="decimal" value="<%= code.min_spend ? (code.min_spend / 100).toFixed(2) : '' %>"></label>
+    <label class="field"><span>Usage limit <em>optional</em></span><input type="number" name="max_uses" min="1" value="<%= code.max_uses ?? '' %>"></label>
+    <label class="field"><span>Expiry date <em>optional</em></span><input type="date" name="expires_at" value="<%= code.expires_at || '' %>"></label>
+  </div>
+  <label class="switch"><input type="checkbox" name="active" value="1" <%= code.active ? 'checked' : '' %>><span>Active</span></label>
+  <div class="form-actions">
+    <button class="btn btn-primary">Save code</button>
+    <% if (code.id) { %><button form="delete-code" class="btn btn-danger" data-confirm="Delete this discount code?">Delete</button><% } %>
+  </div>
+</form>
+<% if (code.id) { %><form id="delete-code" action="/admin/discounts/<%= code.id %>/delete" method="post" hidden></form><% } %>
+<%- include('_footer') %>

@@ -1,0 +1,111 @@
+<%- include('../partials/header') %>
+
+<section class="hero">
+  <img class="hero-img" src="<%= settings.hero_image %>" alt="" fetchpriority="high">
+  <div class="wrap hero-content">
+    <p class="eyebrow">ArcomHomes · Est. UK</p>
+    <h1><%= settings.hero_title %></h1>
+    <p class="lead"><%= settings.hero_subtitle %></p>
+    <div class="hero-ctas">
+      <a href="/bathroom" class="btn btn-light">Shop bathroom</a>
+      <a href="/kitchen" class="btn btn-ghost-light">Shop kitchen</a>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap">
+  <div class="section-head">
+    <h2>Shop by category</h2>
+    <a href="/shop" class="link-arrow">View all products</a>
+  </div>
+  <div class="cat-grid">
+    <% categories.forEach(c => { %>
+      <a href="/c/<%= c.slug %>" class="cat-tile">
+        <img src="<%= c.image || '/images/placeholder.svg' %>" alt="" loading="lazy">
+        <span><%= c.name %></span>
+      </a>
+    <% }) %>
+  </div>
+</section>
+
+<section class="section wrap">
+  <div class="section-head">
+    <h2>Bestsellers</h2>
+    <a href="/shop?sort=rating" class="link-arrow">Shop all</a>
+  </div>
+  <div class="product-grid">
+    <% featured.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %>
+  </div>
+</section>
+
+<section class="split">
+  <a href="/bathroom" class="split-panel">
+    <img src="/images/catalog/1600566752355-35792bedcfea.jpg" alt="" loading="lazy">
+    <div class="split-copy">
+      <p class="eyebrow">The bathroom edit</p>
+      <h2>Calm, considered, made to last</h2>
+      <span class="btn btn-light">Explore bathroom</span>
+    </div>
+  </a>
+  <a href="/kitchen" class="split-panel">
+    <img src="/images/catalog/1622372738946-62e02505feb3.jpg" alt="" loading="lazy">
+    <div class="split-copy">
+      <p class="eyebrow">The kitchen edit</p>
+      <h2>Brassware for the heart of the home</h2>
+      <span class="btn btn-light">Explore kitchen</span>
+    </div>
+  </a>
+</section>
+
+<% if (newIn.length) { %>
+<section class="section wrap">
+  <div class="section-head">
+    <h2>New in</h2>
+    <a href="/new" class="link-arrow">See what’s new</a>
+  </div>
+  <div class="product-grid">
+    <% newIn.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %>
+  </div>
+</section>
+<% } %>
+
+<section class="finishes">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="eyebrow">Shop by finish</p>
+      <h2>Every finish, perfectly matched</h2>
+    </div>
+    <div class="finish-row">
+      <% [['Chrome', '#d9dcdf', '#9aa0a6'], ['Brushed Brass', '#d8b67a', '#a8823f'], ['Matt Black', '#3a3a3a', '#111'], ['Brushed Steel', '#c7c6c2', '#8e8c86'], ['Gunmetal', '#6c6d70', '#3d3e41'], ['Natural Oak', '#d6b48a', '#a77c4f']].forEach(([name, a, b]) => { %>
+        <a href="/shop?finish=<%= encodeURIComponent(name) %>" class="finish-chip">
+          <span class="swatch" style="background: linear-gradient(135deg, <%= a %>, <%= b %>)"></span>
+          <span><%= name %></span>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<% if (sale.length) { %>
+<section class="section wrap">
+  <div class="section-head">
+    <h2>In the sale</h2>
+    <a href="/sale" class="link-arrow">Shop the sale</a>
+  </div>
+  <div class="product-grid">
+    <% sale.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %>
+  </div>
+</section>
+<% } %>
+
+<section class="story wrap">
+  <div class="story-img"><img src="/images/catalog/1771681278369-e2a5480b8c29.jpg" alt="" loading="lazy"></div>
+  <div class="story-copy">
+    <p class="eyebrow">Our approach</p>
+    <h2>Design-led pieces, without the showroom mark-up</h2>
+    <p>We work directly with trusted manufacturers to bring you basins, brassware and accessories that feel special every day – tested for UK water, backed by long guarantees, and delivered to your door.</p>
+    <a href="/about" class="btn btn-outline">Read our story</a>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

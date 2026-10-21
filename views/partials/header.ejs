@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' && title ? title + ' | ' : '' %><%= settings.store_name %> – <%= settings.store_tagline %></title>
+  <meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : settings.store_name + ' – ' + settings.store_tagline + '. UK delivery, 30-day returns.' %>">
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<% if (settings.announcement) { %>
+<div class="announce"><%= settings.announcement %></div>
+<% } %>
+
+<header class="site-header">
+  <div class="wrap header-main">
+    <button class="icon-btn menu-toggle" aria-label="Open menu" aria-expanded="false" data-menu-toggle>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+
+    <a href="/" class="logo" aria-label="<%= settings.store_name %> home">
+      <svg class="logo-mark" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 28V14L16 4l12 10v14" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 28v-8a5 5 0 0 1 10 0v8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <span class="logo-text">ARCOM<span>HOMES</span></span>
+    </a>
+
+    <form class="search" action="/search" method="get" role="search">
+      <label class="sr-only" for="site-search">Search products</label>
+      <input id="site-search" type="search" name="q" placeholder="Search taps, basins, mirrors…" value="<%= typeof q !== 'undefined' ? q : '' %>">
+      <button aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    </form>
+
+    <div class="header-actions">
+      <a href="/account" class="icon-link" aria-label="My account">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span class="icon-label"><%= user ? user.first_name || 'Account' : 'Sign in' %></span>
+      </a>
+      <a href="/basket" class="icon-link basket-link" aria-label="Basket, <%= cartCount %> items">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8h14l-1.2 12H6.2L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="icon-label">Basket</span>
+        <% if (cartCount) { %><span class="count"><%= cartCount %></span><% } %>
+      </a>
+    </div>
+  </div>
+
+  <nav class="main-nav" aria-label="Main" data-menu>
+    <div class="wrap nav-inner">
+      <ul class="nav-list">
+        <li class="has-mega">
+          <a href="/bathroom" class="<%= path.startsWith('/bathroom') ? 'active' : '' %>">Bathroom</a>
+          <div class="mega">
+            <div class="wrap mega-inner">
+              <div>
+                <p class="mega-title">Shop bathroom</p>
+                <ul class="mega-links">
+                  <% nav.bathroom.forEach(c => { %><li><a href="/c/<%= c.slug %>"><%= c.name %></a></li><% }) %>
+                  <li><a href="/bathroom" class="all">View all bathroom</a></li>
+                </ul>
+              </div>
+              <a class="mega-feature" href="/c/vanity-units">
+                <img src="/images/catalog/1595514535415-dae8580c416c.jpg" alt="" loading="lazy">
+                <span>Vanity units in natural oak</span>
+              </a>
+              <a class="mega-feature" href="/c/bathroom-taps">
+                <img src="/images/catalog/1769356814886-abdadde25ea7.jpg" alt="" loading="lazy">
+                <span>Living brushed brass</span>
+              </a>
+            </div>
+          </div>
+        </li>
+        <li class="has-mega">
+          <a href="/kitchen" class="<%= path.startsWith('/kitchen') ? 'active' : '' %>">Kitchen</a>
+          <div class="mega">
+            <div class="wrap mega-inner">
+              <div>
+                <p class="mega-title">Shop kitchen</p>
+                <ul class="mega-links">
+                  <% nav.kitchen.forEach(c => { %><li><a href="/c/<%= c.slug %>"><%= c.name %></a></li><% }) %>
+                  <li><a href="/kitchen" class="all">View all kitchen</a></li>
+                </ul>
+              </div>
+              <a class="mega-feature" href="/c/kitchen-taps">
+                <img src="/images/catalog/1610276099118-c929abaaa80a.jpg" alt="" loading="lazy">
+                <span>Professional kitchen taps</span>
+              </a>
+              <a class="mega-feature" href="/c/kitchen-accessories">
+                <img src="/images/catalog/1777499455310-80354aa1021f.jpg" alt="" loading="lazy">
+                <span>Storage &amp; accessories</span>
+              </a>
+            </div>
+          </div>
+        </li>
+        <% nav.bathroom.slice(0, 4).forEach(c => { %>
+          <li class="nav-quick"><a href="/c/<%= c.slug %>" class="<%= path === '/c/' + c.slug ? 'active' : '' %>"><%= c.name %></a></li>
+        <% }) %>
+        <li><a href="/new" class="<%= path === '/new' ? 'active' : '' %>">New in</a></li>
+        <li><a href="/sale" class="sale-link <%= path === '/sale' ? 'active' : '' %>">Sale</a></li>
+      </ul>
+      <ul class="nav-list nav-secondary">
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+<% if (flash) { %>
+  <div class="wrap"><div class="flash flash-<%= flash.type %>" role="status"><%= flash.message %></div></div>
+<% } %>

@@ -1,0 +1,58 @@
+<%- include('_header') %>
+<% const s = settings; const pounds = p => (Number(p) / 100).toFixed(2); %>
+<div class="page-head"><div><h1>Store settings</h1><p class="muted">Changes appear on the store immediately.</p></div></div>
+
+<form action="/admin/settings" method="post" enctype="multipart/form-data" class="form-layout">
+  <div class="form-main">
+    <section class="panel">
+      <h2>Store details</h2>
+      <div class="form-grid">
+        <label class="field"><span>Store name</span><input name="store_name" value="<%= s.store_name %>"></label>
+        <label class="field"><span>Tagline</span><input name="store_tagline" value="<%= s.store_tagline %>"></label>
+        <label class="field"><span>Customer service email</span><input type="email" name="store_email" value="<%= s.store_email %>"></label>
+        <label class="field"><span>Phone</span><input name="store_phone" value="<%= s.store_phone %>"></label>
+        <label class="field span-2"><span>Business address <em>shown in the footer</em></span><input name="store_address" value="<%= s.store_address %>"></label>
+        <label class="field"><span>Company number <em>optional</em></span><input name="company_number" value="<%= s.company_number %>"></label>
+        <label class="field"><span>VAT number <em>optional</em></span><input name="vat_number" value="<%= s.vat_number %>"></label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Homepage</h2>
+      <label class="field"><span>Announcement bar <em>leave empty to hide</em></span><input name="announcement" value="<%= s.announcement %>"></label>
+      <label class="field"><span>Hero heading</span><input name="hero_title" value="<%= s.hero_title %>"></label>
+      <label class="field"><span>Hero text</span><textarea name="hero_subtitle" rows="2"><%= s.hero_subtitle %></textarea></label>
+      <div class="hero-setting">
+        <img src="<%= s.hero_image %>" alt="Current hero image">
+        <label class="dropzone">
+          <input type="file" name="hero_image_file" accept="image/jpeg,image/png,image/webp,image/avif" data-preview>
+          <span><strong>Replace hero image</strong> – landscape, at least 1800px wide.</span>
+          <div class="preview" data-preview-target></div>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Social links</h2>
+      <div class="form-grid">
+        <label class="field"><span>Instagram URL</span><input type="url" name="instagram_url" value="<%= s.instagram_url %>"></label>
+        <label class="field"><span>Facebook URL</span><input type="url" name="facebook_url" value="<%= s.facebook_url %>"></label>
+        <label class="field"><span>Pinterest URL</span><input type="url" name="pinterest_url" value="<%= s.pinterest_url %>"></label>
+      </div>
+    </section>
+  </div>
+
+  <aside class="form-side">
+    <section class="panel">
+      <h2>Delivery</h2>
+      <label class="field"><span>Standard delivery charge (£)</span><input name="shipping_flat_rate" inputmode="decimal" value="<%= pounds(s.shipping_flat_rate) %>"></label>
+      <label class="field"><span>Free delivery over (£)</span><input name="free_shipping_threshold" inputmode="decimal" value="<%= pounds(s.free_shipping_threshold) %>"></label>
+    </section>
+    <section class="panel">
+      <h2>Inventory</h2>
+      <label class="field"><span>Low-stock alert at</span><input type="number" min="0" name="low_stock_threshold" value="<%= s.low_stock_threshold %>"></label>
+    </section>
+    <button class="btn btn-primary btn-block">Save settings</button>
+  </aside>
+</form>
+<%- include('_footer') %>

@@ -1,0 +1,23 @@
+{
+  "name": "arcomhomes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ArcomHomes.co.uk – kitchen & bathroom accessories store with admin dashboard",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node src/seed.js",
+    "images": "node scripts/download-images.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-session": "^2.1.1",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "multer": "^2.4.0"
+  }
+}

@@ -1,0 +1,30 @@
+<%- include('_header') %>
+<div class="page-head">
+  <div><h1>Categories</h1><p class="muted">Categories appear in the store menu, homepage and filters.</p></div>
+  <a href="/admin/categories/new" class="btn btn-primary">+ Add category</a>
+</div>
+
+<% ['bathroom', 'kitchen'].forEach(dept => { const list = categories.filter(c => c.department === dept); %>
+<section class="panel panel-flush">
+  <div class="panel-head padded"><h2><%= dept === 'bathroom' ? 'Bathroom' : 'Kitchen' %></h2><span class="muted small"><%= list.length %> categories</span></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Category</th><th>URL</th><th class="num">Products</th><th class="num">Order</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (!list.length) { %><tr><td colspan="6" class="empty-cell">No categories yet.</td></tr><% } %>
+        <% list.forEach(c => { %>
+          <tr>
+            <td><div class="prod-cell"><img src="<%= c.image || '/images/placeholder.svg' %>" alt="" class="round"><a href="/admin/categories/<%= c.id %>" class="strong"><%= c.name %></a></div></td>
+            <td class="muted">/c/<%= c.slug %></td>
+            <td class="num"><a href="/admin/products?category=<%= c.id %>" class="link"><%= c.product_count %></a></td>
+            <td class="num"><%= c.sort_order %></td>
+            <td><span class="dot-status <%= c.active ? 'live' : '' %>"><%= c.active ? 'Live' : 'Hidden' %></span></td>
+            <td class="actions"><a href="/admin/categories/<%= c.id %>" class="link">Edit</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<% }) %>
+<%- include('_footer') %>

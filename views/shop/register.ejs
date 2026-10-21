@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+<div class="wrap auth-page">
+  <div class="card-panel auth-card">
+    <h1 class="page-title">Create an account</h1>
+    <p class="muted">Track orders, check out faster and save your details.</p>
+    <form action="/account/register" method="post" class="stack">
+      <div class="form-grid">
+        <label class="field <%= errors.first_name ? 'has-error' : '' %>"><span>First name</span><input name="first_name" value="<%= form.first_name || '' %>" required autocomplete="given-name"><% if (errors.first_name) { %><small class="error"><%= errors.first_name %></small><% } %></label>
+        <label class="field <%= errors.last_name ? 'has-error' : '' %>"><span>Last name</span><input name="last_name" value="<%= form.last_name || '' %>" required autocomplete="family-name"><% if (errors.last_name) { %><small class="error"><%= errors.last_name %></small><% } %></label>
+      </div>
+      <label class="field <%= errors.email ? 'has-error' : '' %>"><span>Email</span><input type="email" name="email" value="<%= form.email || '' %>" required autocomplete="email"><% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %></label>
+      <label class="field <%= errors.password ? 'has-error' : '' %>"><span>Password</span><input type="password" name="password" minlength="8" required autocomplete="new-password"><% if (errors.password) { %><small class="error"><%= errors.password %></small><% } %></label>
+      <label class="check"><input type="checkbox" name="newsletter" value="1" checked> Send me offers and new arrivals</label>
+      <button class="btn btn-block btn-lg">Create account</button>
+    </form>
+    <p class="center-block muted">Already registered? <a href="/account/login">Sign in</a></p>
+  </div>
+</div>
+<%- include('../partials/footer') %>

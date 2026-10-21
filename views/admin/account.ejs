@@ -1,0 +1,40 @@
+<%- include('_header') %>
+<div class="page-head"><div><h1>Account &amp; team</h1><p class="muted">Signed in as <%= user.email %></p></div></div>
+
+<div class="grid-2">
+  <form action="/admin/account/password" method="post" class="panel">
+    <h2>Change your password</h2>
+    <label class="field"><span>Current password</span><input type="password" name="current_password" required autocomplete="current-password"></label>
+    <label class="field"><span>New password <em>at least 10 characters</em></span><input type="password" name="new_password" minlength="10" required autocomplete="new-password"></label>
+    <label class="field"><span>Confirm new password</span><input type="password" name="confirm_password" minlength="10" required autocomplete="new-password"></label>
+    <button class="btn btn-primary">Update password</button>
+  </form>
+
+  <section class="panel">
+    <h2>Admin users</h2>
+    <ul class="item-list">
+      <% admins.forEach(a => { %>
+        <li>
+          <span class="avatar"><%= (a.first_name || a.email)[0].toUpperCase() %></span>
+          <div><strong><%= a.first_name %> <%= a.last_name %></strong><span class="muted small"><%= a.email %></span></div>
+          <% if (a.id !== user.id) { %>
+            <form action="/admin/account/admins/<%= a.id %>/remove" method="post"><button class="link danger" data-confirm="Remove admin access for <%= a.email %>?">Remove</button></form>
+          <% } else { %><span class="tag">You</span><% } %>
+        </li>
+      <% }) %>
+    </ul>
+    <details class="add-admin">
+      <summary class="btn btn-ghost btn-sm">+ Add an admin</summary>
+      <form action="/admin/account/admins" method="post" class="stack">
+        <div class="form-grid">
+          <label class="field"><span>First name</span><input name="first_name"></label>
+          <label class="field"><span>Last name</span><input name="last_name"></label>
+        </div>
+        <label class="field"><span>Email</span><input type="email" name="email" required></label>
+        <label class="field"><span>Temporary password <em>10+ characters</em></span><input type="text" name="password" minlength="10" required autocomplete="off"></label>
+        <button class="btn btn-primary">Add admin</button>
+      </form>
+    </details>
+  </section>
+</div>
+<%- include('_footer') %>

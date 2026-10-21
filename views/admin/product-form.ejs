@@ -1,0 +1,115 @@
+<%- include('_header') %>
+<%
+  const v = k => product[k] ?? '';
+  const pounds = k => (product[k] === null || product[k] === undefined || product[k] === '') ? '' : (product[k] / 100).toFixed(2);
+%>
+<div class="page-head">
+  <div>
+    <a href="/admin/products" class="back">‹ Products</a>
+    <h1><%= product.id ? product.name : 'New product' %></h1>
+  </div>
+  <% if (product.id) { %>
+  <div class="head-actions">
+    <a href="/p/<%= product.slug %>" target="_blank" class="btn btn-ghost">View on store ↗</a>
+    <form action="/admin/products/<%= product.id %>/duplicate" method="post"><button class="btn btn-ghost">Duplicate</button></form>
+  </div>
+  <% } %>
+</div>
+
+<form action="/admin/products<%= product.id ? '/' + product.id : '' %>" method="post" enctype="multipart/form-data" class="form-layout">
+  <div class="form-main">
+    <section class="panel">
+      <h2>Details</h2>
+      <label class="field <%= errors.name ? 'has-error' : '' %>"><span>Product name</span><input name="name" value="<%= v('name') %>" required maxlength="160"><% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %></label>
+      <label class="field"><span>Short description <em>shown under the price</em></span><input name="short_description" value="<%= v('short_description') %>" maxlength="300"></label>
+      <label class="field"><span>Full description <em>leave a blank line between paragraphs</em></span><textarea name="description" rows="8"><%= v('description') %></textarea></label>
+    </section>
+
+    <section class="panel" id="images">
+      <h2>Images</h2>
+      <% if (images.length) { %>
+        <div class="image-grid">
+          <% images.forEach((img, i) => { %>
+            <figure class="<%= i === 0 ? 'primary' : '' %>">
+              <img src="<%= img.path %>" alt="">
+              <figcaption>
+                <% if (i === 0) { %><span class="tag">Main image</span><% } else { %>
+                  <button form="image-action" formaction="/admin/products/<%= product.id %>/images/<%= img.id %>/primary" class="link">Make main</button>
+                <% } %>
+                <button form="image-action" formaction="/admin/products/<%= product.id %>/images/<%= img.id %>/delete" class="link danger" data-confirm="Remove this image?">Remove</button>
+              </figcaption>
+            </figure>
+          <% }) %>
+        </div>
+      <% } %>
+      <label class="dropzone">
+        <input type="file" name="images" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" multiple data-preview>
+        <span><strong>Upload images</strong> – JPG, PNG or WebP up to 8MB each. Square photos look best.</span>
+        <div class="preview" data-preview-target></div>
+      </label>
+    </section>
+
+    <section class="panel">
+      <h2>Pricing</h2>
+      <div class="form-grid">
+        <label class="field <%= errors.price ? 'has-error' : '' %>"><span>Price (£, inc. VAT)</span><input name="price" inputmode="decimal" value="<%= pounds('price') %>" required placeholder="0.00"><% if (errors.price) { %><small class="error"><%= errors.price %></small><% } %></label>
+        <label class="field"><span>Was price (£) <em>optional – shows as sale</em></span><input name="compare_price" inputmode="decimal" value="<%= pounds('compare_price') %>" placeholder="0.00"></label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Specifications</h2>
+      <div class="form-grid">
+        <label class="field"><span>Finish / colour</span><input name="finish" value="<%= v('finish') %>" list="finishes" placeholder="e.g. Brushed Brass"></label>
+        <label class="field"><span>Brand</span><input name="brand" value="<%= v('brand') %>"></label>
+        <label class="field"><span>Material</span><input name="material" value="<%= v('material') %>"></label>
+        <label class="field"><span>Dimensions</span><input name="dimensions" value="<%= v('dimensions') %>"></label>
+        <label class="field span-2"><span>Guarantee</span><input name="warranty" value="<%= v('warranty') %>" placeholder="e.g. 10-year guarantee"></label>
+      </div>
+      <datalist id="finishes">
+        <% ['Chrome', 'Brushed Brass', 'Matt Black', 'Brushed Steel', 'Gunmetal', 'Brushed Nickel', 'White Gloss', 'White Matt', 'Natural Oak', 'Walnut'].forEach(f => { %><option value="<%= f %>"><% }) %>
+      </datalist>
+    </section>
+  </div>
+
+  <aside class="form-side">
+    <section class="panel">
+      <h2>Visibility</h2>
+      <label class="switch"><input type="checkbox" name="active" value="1" <%= product.active ? 'checked' : '' %>><span>Show on store</span></label>
+      <label class="switch"><input type="checkbox" name="featured" value="1" <%= product.featured ? 'checked' : '' %>><span>Bestseller (homepage)</span></label>
+      <label class="switch"><input type="checkbox" name="is_new" value="1" <%= product.is_new ? 'checked' : '' %>><span>“New” badge</span></label>
+    </section>
+    <section class="panel">
+      <h2>Organisation</h2>
+      <label class="field"><span>Category</span>
+        <select name="category_id">
+          <option value="">— None —</option>
+          <% ['bathroom', 'kitchen'].forEach(dept => { %>
+            <optgroup label="<%= dept === 'bathroom' ? 'Bathroom' : 'Kitchen' %>">
+              <% categories.filter(c => c.department === dept).forEach(c => { %><option value="<%= c.id %>" <%= product.category_id === c.id ? 'selected' : '' %>><%= c.name %></option><% }) %>
+            </optgroup>
+          <% }) %>
+        </select>
+      </label>
+      <label class="field"><span>SKU</span><input name="sku" value="<%= v('sku') %>" placeholder="Auto-generated if blank"></label>
+      <% if (product.id) { %><label class="field"><span>URL slug</span><input name="slug" value="<%= v('slug') %>"></label><% } %>
+    </section>
+    <section class="panel">
+      <h2>Inventory</h2>
+      <label class="field"><span>Stock quantity</span><input type="number" name="stock" value="<%= v('stock') %>" min="0"></label>
+    </section>
+    <div class="sticky-actions">
+      <button class="btn btn-primary btn-block">Save product</button>
+    </div>
+  </aside>
+</form>
+
+<% if (product.id) { %>
+<%# Image buttons inside the main form submit through this empty form, so they never act as the default (Enter key) button %>
+<form id="image-action" method="post" hidden></form>
+<form action="/admin/products/<%= product.id %>/delete" method="post" class="danger-zone">
+  <div><strong>Delete product</strong><p class="muted small">Past orders keep their line items. This can’t be undone.</p></div>
+  <button class="btn btn-danger" data-confirm="Delete <%= product.name %>? This can’t be undone.">Delete product</button>
+</form>
+<% } %>
+<%- include('_footer') %>

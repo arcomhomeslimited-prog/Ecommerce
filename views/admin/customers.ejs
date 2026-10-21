@@ -1,0 +1,38 @@
+<%- include('_header') %>
+<%
+  const link = (changes) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) if (!(k in changes)) params.set(k, v);
+    for (const [k, v] of Object.entries(changes)) if (v) params.set(k, v);
+    const s = params.toString();
+    return '/admin/customers' + (s ? '?' + s : '');
+  };
+%>
+<div class="page-head"><div><h1>Customers</h1><p class="muted"><%= pg.total %> registered customer<%= pg.total === 1 ? '' : 's' %></p></div></div>
+
+<form method="get" class="filter-bar">
+  <input type="search" name="q" value="<%= q %>" placeholder="Search name or email">
+  <button class="btn">Search</button>
+</form>
+
+<section class="panel panel-flush">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Customer</th><th>Joined</th><th class="num">Orders</th><th>Last order</th><th class="num">Total spent</th></tr></thead>
+      <tbody>
+        <% if (!customers.length) { %><tr><td colspan="5" class="empty-cell">No customers found.</td></tr><% } %>
+        <% customers.forEach(c => { %>
+          <tr class="row-link" data-href="/admin/customers/<%= c.id %>">
+            <td><div class="prod-cell"><span class="avatar"><%= (c.first_name || c.email)[0].toUpperCase() %></span><div><a href="/admin/customers/<%= c.id %>" class="strong"><%= c.first_name %> <%= c.last_name %></a><span class="muted small"><%= c.email %></span></div></div></td>
+            <td><%= formatDate(c.created_at) %></td>
+            <td class="num"><%= c.order_count %></td>
+            <td><%= c.last_order ? formatDate(c.last_order) : '—' %></td>
+            <td class="num strong"><%= money(c.spent) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('_pagination', { pg, link }) %>
+<%- include('_footer') %>

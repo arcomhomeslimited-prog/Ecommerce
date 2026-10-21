@@ -1,0 +1,46 @@
+<%- include('_header') %>
+<div class="page-head">
+  <div><a href="/admin/categories" class="back">‹ Categories</a><h1><%= category.id ? category.name : 'New category' %></h1></div>
+</div>
+
+<form action="/admin/categories<%= category.id ? '/' + category.id : '' %>" method="post" enctype="multipart/form-data" class="form-layout">
+  <div class="form-main">
+    <section class="panel">
+      <h2>Details</h2>
+      <label class="field <%= errors.name ? 'has-error' : '' %>"><span>Name</span><input name="name" value="<%= category.name || '' %>" required><% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %></label>
+      <label class="field"><span>Description <em>shown at the top of the category page</em></span><textarea name="description" rows="3"><%= category.description || '' %></textarea></label>
+      <% if (category.id) { %><label class="field"><span>URL slug</span><input name="slug" value="<%= category.slug %>"></label><% } %>
+    </section>
+    <section class="panel">
+      <h2>Image</h2>
+      <% if (category.image) { %><img src="<%= category.image %>" alt="" class="cat-preview"><% } %>
+      <label class="dropzone">
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/avif" data-preview>
+        <span><strong><%= category.image ? 'Replace image' : 'Upload image' %></strong> – square images work best.</span>
+        <div class="preview" data-preview-target></div>
+      </label>
+    </section>
+  </div>
+  <aside class="form-side">
+    <section class="panel">
+      <h2>Settings</h2>
+      <label class="field"><span>Department</span>
+        <select name="department">
+          <option value="bathroom" <%= category.department === 'bathroom' ? 'selected' : '' %>>Bathroom</option>
+          <option value="kitchen" <%= category.department === 'kitchen' ? 'selected' : '' %>>Kitchen</option>
+        </select>
+      </label>
+      <label class="field"><span>Sort order <em>lower shows first</em></span><input type="number" name="sort_order" value="<%= category.sort_order || 0 %>"></label>
+      <label class="switch"><input type="checkbox" name="active" value="1" <%= category.active ? 'checked' : '' %>><span>Show on store</span></label>
+    </section>
+    <button class="btn btn-primary btn-block">Save category</button>
+  </aside>
+</form>
+
+<% if (category.id) { %>
+<form action="/admin/categories/<%= category.id %>/delete" method="post" class="danger-zone">
+  <div><strong>Delete category</strong><p class="muted small">Only possible when the category has no products.</p></div>
+  <button class="btn btn-danger" data-confirm="Delete this category?">Delete category</button>
+</form>
+<% } %>
+<%- include('_footer') %>

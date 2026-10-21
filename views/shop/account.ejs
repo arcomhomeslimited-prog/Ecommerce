@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+<div class="wrap narrow-page">
+  <div class="account-head">
+    <h1 class="page-title">Hello, <%= user.first_name %></h1>
+    <form action="/account/logout" method="post"><button class="btn btn-outline btn-sm">Sign out</button></form>
+  </div>
+
+  <section class="card-panel">
+    <h2>Your orders</h2>
+    <% if (!orders.length) { %>
+      <p class="muted">You haven’t placed any orders yet. <a href="/shop">Start shopping</a></p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Status</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <% orders.forEach(o => { %>
+              <tr>
+                <td><a href="/account/orders/<%= o.number %>"><%= o.number %></a></td>
+                <td><%= formatDate(o.created_at) %></td>
+                <td><%= o.item_count %></td>
+                <td><span class="status status-<%= o.status %>"><%= o.status %></span></td>
+                <td class="num"><%= money(o.total) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="card-panel" id="details">
+    <h2>Your details</h2>
+    <form action="/account/details" method="post" class="form-grid">
+      <label class="field"><span>First name</span><input name="first_name" value="<%= user.first_name %>" required></label>
+      <label class="field"><span>Last name</span><input name="last_name" value="<%= user.last_name %>" required></label>
+      <label class="field"><span>Email</span><input value="<%= user.email %>" disabled></label>
+      <label class="field"><span>Phone</span><input name="phone" type="tel" value="<%= user.phone %>"></label>
+      <label class="field"><span>Current password</span><input type="password" name="current_password" autocomplete="current-password"></label>
+      <label class="field"><span>New password</span><input type="password" name="new_password" minlength="8" autocomplete="new-password"></label>
+      <div class="span-2"><button class="btn">Save changes</button></div>
+    </form>
+  </section>
+</div>
+<%- include('../partials/footer') %>

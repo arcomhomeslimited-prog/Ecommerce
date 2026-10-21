@@ -1,0 +1,141 @@
+<%- include('../partials/header', { metaDescription: product.short_description }) %>
+<%
+  const onSale = product.compare_price && product.compare_price > product.price;
+  const gallery = images.length ? images : [{ path: '/images/placeholder.svg' }];
+%>
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a><span>/</span>
+    <a href="/<%= product.department %>"><%= product.department === 'kitchen' ? 'Kitchen' : 'Bathroom' %></a><span>/</span>
+    <a href="/c/<%= product.category_slug %>"><%= product.category_name %></a><span>/</span>
+    <span aria-current="page"><%= product.name %></span>
+  </nav>
+
+  <div class="pdp">
+    <div class="gallery" data-gallery>
+      <div class="gallery-main">
+        <img src="<%= gallery[0].path %>" alt="<%= product.name %> in <%= product.finish %>" data-gallery-main>
+        <% if (onSale) { %><span class="badge badge-sale pdp-badge">Save <%= money(product.compare_price - product.price) %></span><% } %>
+      </div>
+      <% if (gallery.length > 1) { %>
+        <div class="gallery-thumbs">
+          <% gallery.forEach((img, i) => { %>
+            <button type="button" class="<%= i === 0 ? 'on' : '' %>" data-gallery-thumb="<%= img.path %>" aria-label="View image <%= i + 1 %>"><img src="<%= img.path %>" alt=""></button>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="pdp-info">
+      <p class="eyebrow"><%= product.brand %> · <%= product.category_name %></p>
+      <h1><%= product.name %></h1>
+      <% if (product.review_count) { %>
+        <a href="#reviews" class="pdp-rating"><%- include('../partials/stars', { rating: product.rating }) %> <%= product.rating %> (<%= product.review_count %> review<%= product.review_count === 1 ? '' : 's' %>)</a>
+      <% } %>
+      <p class="price price-lg">
+        <span class="now <%= onSale ? 'is-sale' : '' %>"><%= money(product.price) %></span>
+        <% if (onSale) { %><s class="was">Was <%= money(product.compare_price) %></s><% } %>
+        <span class="vat">inc. VAT</span>
+      </p>
+      <p class="pdp-short"><%= product.short_description %></p>
+
+      <div class="pdp-option">
+        <p class="label">Finish: <strong><%= product.finish %></strong></p>
+        <% if (variants.length > 1) { %>
+          <div class="variant-row">
+            <% variants.forEach(v => { %><a href="/p/<%= v.slug %>" class="chip <%= v.slug === product.slug ? 'on' : '' %>"><%= v.finish %></a><% }) %>
+          </div>
+        <% } %>
+      </div>
+
+      <% if (product.stock > 0) { %>
+        <p class="stock <%= product.stock <= 5 ? 'stock-low' : 'stock-ok' %>">
+          <span class="dot"></span><%= product.stock <= 5 ? `Low stock – only ${product.stock} left` : 'In stock – dispatched in 1–2 working days' %>
+        </p>
+        <form action="/basket/add" method="post" class="add-form">
+          <input type="hidden" name="product_id" value="<%= product.id %>">
+          <div class="qty" data-qty>
+            <button type="button" data-step="-1" aria-label="Decrease quantity">−</button>
+            <input type="number" name="qty" value="1" min="1" max="<%= Math.min(product.stock, 99) %>" aria-label="Quantity">
+            <button type="button" data-step="1" aria-label="Increase quantity">+</button>
+          </div>
+          <button class="btn btn-lg">Add to basket</button>
+        </form>
+      <% } else { %>
+        <p class="stock stock-out"><span class="dot"></span>Out of stock</p>
+        <a href="/contact?subject=<%= encodeURIComponent('Stock enquiry: ' + product.name) %>" class="btn btn-outline btn-lg">Ask about availability</a>
+      <% } %>
+
+      <ul class="pdp-perks">
+        <li><strong>Free delivery</strong> on UK orders over <%= money(settings.free_shipping_threshold) %></li>
+        <li><strong>30-day returns</strong> on unused items</li>
+        <li><strong><%= product.warranty || 'Manufacturer guarantee' %></strong></li>
+      </ul>
+
+      <details class="accordion" open>
+        <summary>Description</summary>
+        <div class="prose"><% product.description.split(/\n{2,}/).forEach(para => { %><p><%= para %></p><% }) %></div>
+      </details>
+      <details class="accordion">
+        <summary>Specifications</summary>
+        <table class="spec-table">
+          <tr><th>SKU</th><td><%= product.sku %></td></tr>
+          <tr><th>Brand</th><td><%= product.brand %></td></tr>
+          <tr><th>Finish</th><td><%= product.finish %></td></tr>
+          <% if (product.material) { %><tr><th>Material</th><td><%= product.material %></td></tr><% } %>
+          <% if (product.dimensions) { %><tr><th>Dimensions</th><td><%= product.dimensions %></td></tr><% } %>
+          <% if (product.warranty) { %><tr><th>Guarantee</th><td><%= product.warranty %></td></tr><% } %>
+        </table>
+      </details>
+      <details class="accordion">
+        <summary>Delivery &amp; returns</summary>
+        <div class="prose">
+          <p>Standard UK mainland delivery is <%= money(settings.shipping_flat_rate) %>, or free on orders over <%= money(settings.free_shipping_threshold) %>. Most orders are dispatched within 1–2 working days.</p>
+          <p>Changed your mind? Return unused items in their original packaging within 30 days. <a href="/returns">Read our returns policy</a>.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <section class="reviews" id="reviews">
+    <div class="section-head">
+      <h2>Customer reviews</h2>
+      <% if (product.review_count) { %><p class="reviews-summary"><%- include('../partials/stars', { rating: product.rating }) %> <strong><%= product.rating %></strong> out of 5 · <%= product.review_count %> review<%= product.review_count === 1 ? '' : 's' %></p><% } %>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-list">
+        <% if (!reviews.length) { %><p class="muted">No reviews yet – be the first to share your thoughts.</p><% } %>
+        <% reviews.forEach(r => { %>
+          <article class="review">
+            <%- include('../partials/stars', { rating: r.rating }) %>
+            <% if (r.title) { %><h3><%= r.title %></h3><% } %>
+            <p><%= r.body %></p>
+            <p class="muted small"><%= r.name %> · <%= formatDate(r.created_at) %> · Verified buyer</p>
+          </article>
+        <% }) %>
+      </div>
+      <form action="/p/<%= product.slug %>/review" method="post" class="review-form card-panel">
+        <h3>Write a review</h3>
+        <fieldset class="rating-input">
+          <legend>Your rating</legend>
+          <% for (let i = 5; i >= 1; i--) { %><input type="radio" id="r<%= i %>" name="rating" value="<%= i %>" <%= i === 5 ? 'checked' : '' %>><label for="r<%= i %>" title="<%= i %> stars">★</label><% } %>
+        </fieldset>
+        <label>Your name<input name="name" required maxlength="60"></label>
+        <label>Review title<input name="title" maxlength="120"></label>
+        <label>Your review<textarea name="body" rows="4" required maxlength="2000"></textarea></label>
+        <button class="btn">Submit review</button>
+      </form>
+    </div>
+  </section>
+
+  <% if (related.length) { %>
+  <section class="section">
+    <div class="section-head"><h2>You may also like</h2></div>
+    <div class="product-grid">
+      <% related.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %>
+    </div>
+  </section>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

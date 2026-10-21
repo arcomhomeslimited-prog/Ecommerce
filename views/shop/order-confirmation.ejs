@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+
+<div class="wrap narrow-page">
+  <% if (typeof fromAccount !== 'undefined') { %>
+    <p><a href="/account" class="link-muted">‹ Back to my account</a></p>
+    <h1 class="page-title">Order <%= order.number %></h1>
+    <p class="muted">Placed <%= formatDate(order.created_at, true) %> · <span class="status status-<%= order.status %>"><%= order.status %></span></p>
+  <% } else { %>
+    <div class="confirm-hero">
+      <div class="tick" aria-hidden="true">✓</div>
+      <h1 class="page-title">Thank you, <%= order.first_name %>!</h1>
+      <p>Your order <strong><%= order.number %></strong> has been placed. We’ve sent a confirmation to <strong><%= order.email %></strong>.</p>
+      <% if (order.payment_method === 'bank_transfer') { %>
+        <p class="notice">Please pay <strong><%= money(order.total) %></strong> by bank transfer using reference <strong><%= order.number %></strong>. We’ll dispatch as soon as payment clears.</p>
+      <% } %>
+    </div>
+  <% } %>
+
+  <% if (order.tracking_number) { %><p class="notice">Tracking number: <strong><%= order.tracking_number %></strong></p><% } %>
+
+  <div class="basket">
+    <div class="basket-items card-panel">
+      <h2>Items</h2>
+      <% items.forEach(it => { %>
+        <div class="basket-row compact">
+          <span class="basket-img"><img src="<%= it.image || '/images/placeholder.svg' %>" alt=""></span>
+          <div class="basket-info"><p class="basket-name"><%= it.name %></p><p class="muted small"><%= it.finish %> · Qty <%= it.qty %></p></div>
+          <p class="basket-line"><%= money(it.price * it.qty) %></p>
+        </div>
+      <% }) %>
+    </div>
+    <aside class="summary card-panel">
+      <h2>Summary</h2>
+      <dl class="totals">
+        <div><dt>Subtotal</dt><dd><%= money(order.subtotal) %></dd></div>
+        <% if (order.discount) { %><div class="discount"><dt>Discount</dt><dd>−<%= money(order.discount) %></dd></div><% } %>
+        <div><dt>Delivery</dt><dd><%= order.shipping ? money(order.shipping) : 'Free' %></dd></div>
+        <div class="grand"><dt>Total</dt><dd><%= money(order.total) %></dd></div>
+        <div class="vat-line"><dt>Includes VAT</dt><dd><%= money(order.vat) %></dd></div>
+      </dl>
+      <h3 class="small-heading">Delivering to</h3>
+      <address><%= order.first_name %> <%= order.last_name %><br><%= order.address1 %><br><% if (order.address2) { %><%= order.address2 %><br><% } %><%= order.city %><%= order.county ? ', ' + order.county : '' %><br><%= order.postcode %></address>
+    </aside>
+  </div>
+  <p class="center-block"><a href="/shop" class="btn btn-outline">Continue shopping</a></p>
+</div>
+
+<%- include('../partials/footer') %>

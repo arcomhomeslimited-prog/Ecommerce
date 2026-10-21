@@ -1,0 +1,30 @@
+<%- include('_header') %>
+<div class="page-head"><div><h1>Reviews</h1><p class="muted">New reviews stay hidden until you approve them.</p></div></div>
+<div class="tabs">
+  <a href="/admin/reviews?filter=pending" class="<%= filter === 'pending' ? 'on' : '' %>">Awaiting approval <span><%= badges.reviews %></span></a>
+  <a href="/admin/reviews?filter=approved" class="<%= filter === 'approved' ? 'on' : '' %>">Published</a>
+</div>
+
+<% if (!reviews.length) { %><div class="panel empty-state"><p class="muted"><%= filter === 'pending' ? 'No reviews waiting – you’re all caught up.' : 'No published reviews yet.' %></p></div><% } %>
+<div class="review-cards">
+  <% reviews.forEach(r => { %>
+    <article class="panel review-card">
+      <div class="review-top">
+        <span class="stars-text" aria-label="<%= r.rating %> out of 5"><%= '★'.repeat(r.rating) %><span class="off"><%= '★'.repeat(5 - r.rating) %></span></span>
+        <span class="muted small"><%= formatDate(r.created_at) %></span>
+      </div>
+      <% if (r.title) { %><h3><%= r.title %></h3><% } %>
+      <p><%= r.body %></p>
+      <p class="muted small">— <%= r.name %> on <a href="/p/<%= r.product_slug %>" target="_blank" class="link"><%= r.product_name %> (<%= r.finish %>)</a></p>
+      <div class="review-actions">
+        <% if (!r.approved) { %>
+          <form action="/admin/reviews/<%= r.id %>/approve" method="post"><button class="btn btn-sm btn-primary">Approve</button></form>
+        <% } else { %>
+          <form action="/admin/reviews/<%= r.id %>/unapprove" method="post"><button class="btn btn-sm btn-ghost">Unpublish</button></form>
+        <% } %>
+        <form action="/admin/reviews/<%= r.id %>/delete" method="post"><button class="btn btn-sm btn-ghost danger" data-confirm="Delete this review?">Delete</button></form>
+      </div>
+    </article>
+  <% }) %>
+</div>
+<%- include('_footer') %>

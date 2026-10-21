@@ -1,0 +1,84 @@
+<%- include('_header') %>
+<div class="page-head">
+  <div>
+    <a href="/admin/orders" class="back">‹ Orders</a>
+    <h1>Order <%= order.number %> <span class="status status-<%= order.status %>"><%= order.status %></span></h1>
+    <p class="muted">Placed <%= formatDate(order.created_at, true) %> · <%= order.payment_method === 'bank_transfer' ? 'Bank transfer' : 'Card' %></p>
+  </div>
+  <div class="head-actions"><button class="btn btn-ghost" data-print>Print packing slip</button></div>
+</div>
+
+<div class="form-layout">
+  <div class="form-main">
+    <section class="panel panel-flush">
+      <div class="panel-head padded"><h2>Items</h2></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Product</th><th class="num">Price</th><th class="num">Qty</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <% items.forEach(it => { %>
+              <tr>
+                <td><div class="prod-cell"><img src="<%= it.image || '/images/placeholder.svg' %>" alt=""><div><% if (it.product_id) { %><a href="/admin/products/<%= it.product_id %>" class="strong"><%= it.name %></a><% } else { %><span class="strong"><%= it.name %></span><% } %><span class="muted small"><%= it.finish %> · <%= it.sku %></span></div></div></td>
+                <td class="num"><%= money(it.price) %></td>
+                <td class="num"><%= it.qty %></td>
+                <td class="num"><%= money(it.price * it.qty) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <dl class="totals padded">
+        <div><dt>Subtotal</dt><dd><%= money(order.subtotal) %></dd></div>
+        <% if (order.discount) { %><div><dt>Discount <%= order.discount_code ? '(' + order.discount_code + ')' : '' %></dt><dd>−<%= money(order.discount) %></dd></div><% } %>
+        <div><dt>Delivery</dt><dd><%= order.shipping ? money(order.shipping) : 'Free' %></dd></div>
+        <div class="grand"><dt>Total</dt><dd><%= money(order.total) %></dd></div>
+        <div class="muted small"><dt>VAT included (20%)</dt><dd><%= money(order.vat) %></dd></div>
+      </dl>
+    </section>
+
+    <section class="panel">
+      <h2>Timeline</h2>
+      <ol class="timeline">
+        <% events.forEach(e => { %>
+          <li><span class="status status-<%= e.status %>"><%= e.status %></span> <span class="muted small"><%= formatDate(e.created_at, true) %></span><% if (e.note) { %><p><%= e.note %></p><% } %></li>
+        <% }) %>
+      </ol>
+    </section>
+  </div>
+
+  <aside class="form-side">
+    <form action="/admin/orders/<%= order.id %>" method="post" class="panel">
+      <h2>Update order</h2>
+      <label class="field"><span>Order status</span>
+        <select name="status" data-status-select>
+          <% ORDER_STATUSES.forEach(s => { %><option value="<%= s %>" <%= order.status === s ? 'selected' : '' %>><%= s[0].toUpperCase() + s.slice(1) %></option><% }) %>
+        </select>
+      </label>
+      <label class="field"><span>Payment</span>
+        <select name="payment_status">
+          <% ['unpaid', 'paid', 'refunded', 'void'].forEach(s => { %><option value="<%= s %>" <%= order.payment_status === s ? 'selected' : '' %>><%= s[0].toUpperCase() + s.slice(1) %></option><% }) %>
+        </select>
+      </label>
+      <label class="field"><span>Tracking number</span><input name="tracking_number" value="<%= order.tracking_number %>" placeholder="e.g. DPD12345678"></label>
+      <% if (!['cancelled', 'refunded'].includes(order.status)) { %>
+        <label class="switch" data-restock hidden><input type="checkbox" name="restock" value="1" checked><span>Return items to stock</span></label>
+      <% } %>
+      <label class="field"><span>Internal note <em>optional</em></span><textarea name="note" rows="2"></textarea></label>
+      <button class="btn btn-primary btn-block">Save changes</button>
+    </form>
+
+    <section class="panel">
+      <h2>Customer</h2>
+      <p><strong><%= order.first_name %> <%= order.last_name %></strong><br>
+        <a href="mailto:<%= order.email %>" class="link"><%= order.email %></a><% if (order.phone) { %><br><%= order.phone %><% } %></p>
+      <% if (order.user_id) { %><p class="small"><a href="/admin/customers/<%= order.user_id %>" class="link">View customer</a> · <%= customerOrders %> order<%= customerOrders === 1 ? '' : 's' %></p><% } else { %><p class="muted small">Guest checkout</p><% } %>
+    </section>
+
+    <section class="panel">
+      <h2>Delivery address</h2>
+      <address><%= order.first_name %> <%= order.last_name %><br><%= order.address1 %><br><% if (order.address2) { %><%= order.address2 %><br><% } %><%= order.city %><br><% if (order.county) { %><%= order.county %><br><% } %><%= order.postcode %><br>United Kingdom</address>
+      <% if (order.customer_notes) { %><p class="note"><strong>Customer note:</strong> <%= order.customer_notes %></p><% } %>
+    </section>
+  </aside>
+</div>
+<%- include('_footer') %>

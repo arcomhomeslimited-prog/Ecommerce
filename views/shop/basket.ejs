@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+
+<div class="wrap narrow-page">
+  <h1 class="page-title">Your basket</h1>
+
+  <% if (!cart.items.length) { %>
+    <div class="empty">
+      <p>Your basket is empty.</p>
+      <a href="/shop" class="btn">Start shopping</a>
+    </div>
+  <% } else { %>
+  <div class="basket">
+    <div class="basket-items">
+      <% if (cart.freeShippingRemaining) { %>
+        <div class="ship-progress">
+          <p>Spend <strong><%= money(cart.freeShippingRemaining) %></strong> more for free UK delivery</p>
+          <div class="bar"><span style="width: <%= Math.min(100, Math.round((1 - cart.freeShippingRemaining / settings.free_shipping_threshold) * 100)) %>%"></span></div>
+        </div>
+      <% } else { %>
+        <div class="ship-progress done"><p>✓ Your order qualifies for <strong>free UK delivery</strong></p></div>
+      <% } %>
+
+      <% cart.items.forEach(({ product: p, qty, line }) => { %>
+        <div class="basket-row">
+          <a href="/p/<%= p.slug %>" class="basket-img"><img src="<%= p.image || '/images/placeholder.svg' %>" alt=""></a>
+          <div class="basket-info">
+            <a href="/p/<%= p.slug %>" class="basket-name"><%= p.name %></a>
+            <p class="muted small"><%= p.finish %> · <%= p.sku %></p>
+            <p class="small"><%= money(p.price) %> each</p>
+            <% if (p.stock < 5) { %><p class="stock-low small">Only <%= p.stock %> in stock</p><% } %>
+          </div>
+          <form action="/basket/update" method="post" class="basket-qty">
+            <input type="hidden" name="product_id" value="<%= p.id %>">
+            <div class="qty qty-sm" data-qty>
+              <button type="button" data-step="-1" aria-label="Decrease">−</button>
+              <input type="number" name="qty" value="<%= qty %>" min="1" max="<%= Math.min(p.stock, 99) %>" aria-label="Quantity" data-autosubmit>
+              <button type="button" data-step="1" aria-label="Increase">+</button>
+            </div>
+            <button name="remove" value="1" class="link-muted small">Remove</button>
+          </form>
+          <p class="basket-line"><%= money(line) %></p>
+        </div>
+      <% }) %>
+    </div>
+
+    <aside class="summary card-panel">
+      <h2>Order summary</h2>
+      <form action="/basket/discount" method="post" class="discount-form">
+        <% if (cart.discountCode) { %>
+          <p class="applied">Code <strong><%= cart.discountCode %></strong> applied <button name="remove" value="1" class="link-muted small">Remove</button></p>
+        <% } else { %>
+          <label class="sr-only" for="code">Discount code</label>
+          <input id="code" name="code" placeholder="Discount code">
+          <button class="btn btn-outline btn-sm">Apply</button>
+        <% } %>
+      </form>
+      <% if (cart.discountError) { %><p class="error small"><%= cart.discountError %></p><% } %>
+      <dl class="totals">
+        <div><dt>Subtotal</dt><dd><%= money(cart.subtotal) %></dd></div>
+        <% if (cart.discount) { %><div class="discount"><dt>Discount</dt><dd>−<%= money(cart.discount) %></dd></div><% } %>
+        <div><dt>Delivery</dt><dd><%= cart.shipping ? money(cart.shipping) : 'Free' %></dd></div>
+        <div class="grand"><dt>Total</dt><dd><%= money(cart.total) %></dd></div>
+        <div class="vat-line"><dt>Includes VAT</dt><dd><%= money(cart.vat) %></dd></div>
+      </dl>
+      <a href="/checkout" class="btn btn-lg btn-block">Checkout securely</a>
+      <a href="/shop" class="link-muted center-block">Continue shopping</a>
+    </aside>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

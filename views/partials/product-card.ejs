@@ -1,0 +1,26 @@
+<%
+  const onSale = p.compare_price && p.compare_price > p.price;
+  const pct = onSale ? Math.round((1 - p.price / p.compare_price) * 100) : 0;
+%>
+<article class="card">
+  <a href="/p/<%= p.slug %>" class="card-media">
+    <img src="<%= p.image || '/images/placeholder.svg' %>" alt="<%= p.name %> – <%= p.finish %>" loading="lazy" width="600" height="600">
+    <div class="badges">
+      <% if (onSale) { %><span class="badge badge-sale">Save <%= pct %>%</span><% } %>
+      <% if (p.is_new) { %><span class="badge">New</span><% } %>
+      <% if (p.stock <= 0) { %><span class="badge badge-muted">Out of stock</span><% } %>
+    </div>
+  </a>
+  <div class="card-body">
+    <p class="card-finish"><%= p.finish %></p>
+    <h3 class="card-title"><a href="/p/<%= p.slug %>"><%= p.name %></a></h3>
+    <% if (p.review_count) { %>
+      <p class="card-rating"><%- include('stars', { rating: p.rating }) %><span><%= p.review_count %></span></p>
+    <% } %>
+    <p class="price">
+      <span class="now <%= onSale ? 'is-sale' : '' %>"><%= money(p.price) %></span>
+      <% if (onSale) { %><s class="was"><%= money(p.compare_price) %></s><% } %>
+    </p>
+    <% if (p.stock > 0 && p.stock <= 5) { %><p class="stock-low">Only <%= p.stock %> left</p><% } %>
+  </div>
+</article>

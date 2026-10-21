@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sign in · <%= settings.store_name %> Admin</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin login-body">
+  <div class="login-card">
+    <div class="brand brand-center"><span class="brand-mark">A</span><span><strong>ArcomHomes</strong><small>Store admin</small></span></div>
+    <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+    <% if (flash) { %><div class="flash flash-<%= flash.type %>"><%= flash.message %></div><% } %>
+    <form action="/admin/login" method="post" class="stack">
+      <input type="hidden" name="next" value="<%= next %>">
+      <label class="field"><span>Email</span><input type="email" name="email" value="<%= email %>" required autofocus autocomplete="username"></label>
+      <label class="field"><span>Password</span><input type="password" name="password" required autocomplete="current-password"></label>
+      <button class="btn btn-primary btn-block">Sign in</button>
+    </form>
+    <p class="muted small center"><a href="/">← Back to store</a></p>
+  </div>
+</body>
+</html>

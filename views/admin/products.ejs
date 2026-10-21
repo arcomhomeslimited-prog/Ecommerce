@@ -1,0 +1,90 @@
+<%- include('_header') %>
+<%
+  const link = (changes) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) if (!(k in changes)) params.set(k, v);
+    for (const [k, v] of Object.entries(changes)) if (v) params.set(k, v);
+    const s = params.toString();
+    return '/admin/products' + (s ? '?' + s : '');
+  };
+%>
+<div class="page-head">
+  <div><h1>Products</h1><p class="muted"><%= pg.total %> product<%= pg.total === 1 ? '' : 's' %></p></div>
+  <div class="head-actions">
+    <a href="/admin/products-export.csv" class="btn btn-ghost">Export CSV</a>
+    <a href="/admin/products/new" class="btn btn-primary">+ Add product</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <a href="<%= link({ stock: '', status: '', sale: '', page: '' }) %>" class="<%= !query.stock && !query.status && !query.sale ? 'on' : '' %>">All</a>
+  <a href="<%= link({ status: 'active', stock: '', sale: '', page: '' }) %>" class="<%= query.status === 'active' ? 'on' : '' %>">Live</a>
+  <a href="<%= link({ status: 'draft', stock: '', sale: '', page: '' }) %>" class="<%= query.status === 'draft' ? 'on' : '' %>">Hidden</a>
+  <a href="<%= link({ stock: 'low', status: '', sale: '', page: '' }) %>" class="<%= query.stock === 'low' ? 'on' : '' %>">Low stock</a>
+  <a href="<%= link({ stock: 'out', status: '', sale: '', page: '' }) %>" class="<%= query.stock === 'out' ? 'on' : '' %>">Out of stock</a>
+  <a href="<%= link({ sale: '1', stock: '', status: '', page: '' }) %>" class="<%= query.sale ? 'on' : '' %>">On sale</a>
+</div>
+
+<form method="get" class="filter-bar">
+  <% ['status', 'stock', 'sale'].forEach(k => { if (query[k]) { %><input type="hidden" name="<%= k %>" value="<%= query[k] %>"><% } }) %>
+  <input type="search" name="q" value="<%= q %>" placeholder="Search name, SKU or finish">
+  <select name="category" data-autosubmit>
+    <option value="">All categories</option>
+    <% categories.forEach(c => { %><option value="<%= c.id %>" <%= String(query.category) === String(c.id) ? 'selected' : '' %>><%= c.name %></option><% }) %>
+  </select>
+  <select name="sort" data-autosubmit>
+    <% [['newest', 'Newest'], ['name', 'Name A–Z'], ['price', 'Price high–low'], ['stock', 'Stock low–high']].forEach(([v, l]) => { %><option value="<%= v %>" <%= sort === v ? 'selected' : '' %>><%= l %></option><% }) %>
+  </select>
+  <button class="btn">Search</button>
+</form>
+
+<form action="/admin/products/bulk" method="post" class="panel panel-flush" data-bulk>
+  <div class="bulk-bar" data-bulk-bar hidden>
+    <span data-bulk-count>0 selected</span>
+    <select name="action" required>
+      <option value="">Bulk action…</option>
+      <option value="activate">Show on store</option>
+      <option value="deactivate">Hide from store</option>
+      <option value="feature">Mark as bestseller</option>
+      <option value="unfeature">Remove bestseller</option>
+      <option value="delete">Delete</option>
+    </select>
+    <button class="btn btn-sm" data-confirm-bulk>Apply</button>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="w-check"><input type="checkbox" data-check-all aria-label="Select all"></th>
+          <th>Product</th><th>Category</th><th class="num">Price</th><th class="num">Stock</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!products.length) { %><tr><td colspan="7" class="empty-cell">No products match. <a href="/admin/products/new">Add a product</a></td></tr><% } %>
+        <% products.forEach(p => { %>
+          <tr>
+            <td class="w-check"><input type="checkbox" name="ids" value="<%= p.id %>" data-check aria-label="Select <%= p.name %>"></td>
+            <td>
+              <div class="prod-cell">
+                <img src="<%= p.image || '/images/placeholder.svg' %>" alt="">
+                <div>
+                  <a href="/admin/products/<%= p.id %>" class="strong"><%= p.name %></a>
+                  <span class="muted small"><%= p.finish %><%= p.finish ? ' · ' : '' %><%= p.sku %></span>
+                  <span class="tags"><% if (p.featured) { %><em class="tag">Bestseller</em><% } %><% if (p.is_new) { %><em class="tag">New</em><% } %></span>
+                </div>
+              </div>
+            </td>
+            <td><%= p.category_name || '—' %></td>
+            <td class="num"><%= money(p.price) %><% if (p.compare_price) { %><br><s class="muted small"><%= money(p.compare_price) %></s><% } %></td>
+            <td class="num"><span class="stock-pill <%= p.stock <= 0 ? 'out' : p.stock <= threshold ? 'low' : '' %>"><%= p.stock %></span></td>
+            <td><span class="dot-status <%= p.active ? 'live' : '' %>"><%= p.active ? 'Live' : 'Hidden' %></span></td>
+            <td class="actions"><a href="/admin/products/<%= p.id %>" class="link">Edit</a> <a href="/p/<%= p.slug %>" target="_blank" class="link muted">View</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</form>
+
+<%- include('_pagination', { pg, link }) %>
+<%- include('_footer') %>

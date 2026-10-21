@@ -1,0 +1,29 @@
+<%- include('_header') %>
+<div class="page-head">
+  <div><h1>Discount codes</h1><p class="muted">Customers enter these in their basket.</p></div>
+  <a href="/admin/discounts/new" class="btn btn-primary">+ Create code</a>
+</div>
+<section class="panel panel-flush">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Code</th><th>Discount</th><th>Minimum spend</th><th class="num">Used</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% if (!codes.length) { %><tr><td colspan="7" class="empty-cell">No discount codes yet.</td></tr><% } %>
+        <% codes.forEach(c => {
+          const expired = c.expires_at && new Date(c.expires_at + 'T23:59:59') < new Date();
+          const used = c.max_uses !== null && c.uses >= c.max_uses; %>
+          <tr>
+            <td><a href="/admin/discounts/<%= c.id %>" class="code"><%= c.code %></a></td>
+            <td><%= c.type === 'percent' ? c.value + '% off' : money(c.value) + ' off' %></td>
+            <td><%= c.min_spend ? money(c.min_spend) : '—' %></td>
+            <td class="num"><%= c.uses %><%= c.max_uses !== null ? ' / ' + c.max_uses : '' %></td>
+            <td><%= c.expires_at ? formatDate(c.expires_at) : 'Never' %></td>
+            <td><span class="dot-status <%= c.active && !expired && !used ? 'live' : '' %>"><%= !c.active ? 'Disabled' : expired ? 'Expired' : used ? 'Used up' : 'Active' %></span></td>
+            <td class="actions"><a href="/admin/discounts/<%= c.id %>" class="link">Edit</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('_footer') %>

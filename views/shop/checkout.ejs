@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+<%
+  const field = (name, label, opts = {}) => {
+    const err = errors[name];
+    return `<label class="field ${opts.cls || ''} ${err ? 'has-error' : ''}">
+      <span>${label}${opts.optional ? ' <em>(optional)</em>' : ''}</span>
+      <input name="${name}" type="${opts.type || 'text'}" value="${String(form[name] || '').replace(/[&"<>]/g, c => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]))}" ${opts.optional ? '' : 'required'} autocomplete="${opts.ac || 'on'}">
+      ${err ? `<small class="error">${err}</small>` : ''}
+    </label>`;
+  };
+%>
+<div class="wrap narrow-page">
+  <h1 class="page-title">Checkout</h1>
+  <% if (errors.stock) { %><div class="flash flash-error"><%= errors.stock %> <a href="/basket">Update basket</a></div><% } %>
+  <% if (Object.keys(errors).length && !errors.stock) { %><div class="flash flash-error">Please check the highlighted fields.</div><% } %>
+
+  <form action="/checkout" method="post" class="checkout" novalidate>
+    <div class="checkout-main">
+      <section class="card-panel">
+        <h2>Contact</h2>
+        <% if (!user) { %><p class="muted small">Have an account? <a href="/account/login?next=/checkout">Sign in</a> for faster checkout.</p><% } %>
+        <div class="form-grid">
+          <%- field('email', 'Email address', { type: 'email', cls: 'span-2', ac: 'email' }) %>
+          <%- field('phone', 'Phone', { type: 'tel', optional: true, cls: 'span-2', ac: 'tel' }) %>
+        </div>
+      </section>
+
+      <section class="card-panel">
+        <h2>Delivery address</h2>
+        <div class="form-grid">
+          <%- field('first_name', 'First name', { ac: 'given-name' }) %>
+          <%- field('last_name', 'Last name', { ac: 'family-name' }) %>
+          <%- field('address1', 'Address line 1', { cls: 'span-2', ac: 'address-line1' }) %>
+          <%- field('address2', 'Address line 2', { cls: 'span-2', optional: true, ac: 'address-line2' }) %>
+          <%- field('city', 'Town / city', { ac: 'address-level2' }) %>
+          <%- field('county', 'County', { optional: true, ac: 'address-level1' }) %>
+          <%- field('postcode', 'Postcode', { ac: 'postal-code' }) %>
+          <label class="field"><span>Country</span><input value="United Kingdom" disabled></label>
+          <label class="field span-2"><span>Delivery notes <em>(optional)</em></span><textarea name="customer_notes" rows="2" placeholder="e.g. leave with neighbour"><%= form.customer_notes || '' %></textarea></label>
+        </div>
+      </section>
+
+      <section class="card-panel">
+        <h2>Payment</h2>
+        <div class="pay-options">
+          <label class="pay-option"><input type="radio" name="payment_method" value="card" <%= form.payment_method !== 'bank_transfer' ? 'checked' : '' %>> <span><strong>Credit / debit card</strong><small>Visa, Mastercard, Amex · demo mode</small></span></label>
+          <label class="pay-option"><input type="radio" name="payment_method" value="bank_transfer" <%= form.payment_method === 'bank_transfer' ? 'checked' : '' %>> <span><strong>Bank transfer</strong><small>We’ll email our bank details – order ships when payment clears</small></span></label>
+        </div>
+        <p class="notice small">Demo store: no real payment is taken. Connect Stripe or PayPal before going live.</p>
+        <label class="check <%= errors.terms ? 'has-error' : '' %>"><input type="checkbox" name="terms" value="1"> I agree to the <a href="/terms" target="_blank">terms &amp; conditions</a> and <a href="/privacy" target="_blank">privacy policy</a></label>
+        <% if (errors.terms) { %><small class="error"><%= errors.terms %></small><% } %>
+      </section>
+    </div>
+
+    <aside class="summary card-panel">
+      <h2>Your order</h2>
+      <ul class="mini-items">
+        <% cart.items.forEach(({ product: p, qty, line }) => { %>
+          <li><span class="mini-img"><img src="<%= p.image || '/images/placeholder.svg' %>" alt=""><b><%= qty %></b></span><span class="mini-name"><%= p.name %><small><%= p.finish %></small></span><span><%= money(line) %></span></li>
+        <% }) %>
+      </ul>
+      <dl class="totals">
+        <div><dt>Subtotal</dt><dd><%= money(cart.subtotal) %></dd></div>
+        <% if (cart.discount) { %><div class="discount"><dt>Discount (<%= cart.discountCode %>)</dt><dd>−<%= money(cart.discount) %></dd></div><% } %>
+        <div><dt>Delivery</dt><dd><%= cart.shipping ? money(cart.shipping) : 'Free' %></dd></div>
+        <div class="grand"><dt>Total</dt><dd><%= money(cart.total) %></dd></div>
+        <div class="vat-line"><dt>Includes VAT</dt><dd><%= money(cart.vat) %></dd></div>
+      </dl>
+      <button class="btn btn-lg btn-block">Place order · <%= money(cart.total) %></button>
+      <a href="/basket" class="link-muted center-block">Back to basket</a>
+    </aside>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

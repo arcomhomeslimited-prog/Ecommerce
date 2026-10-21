@@ -1,0 +1,23 @@
+<%- include('_header') %>
+<div class="page-head">
+  <div><h1>Newsletter subscribers</h1><p class="muted"><%= subscribers.length %> subscriber<%= subscribers.length === 1 ? '' : 's' %> · export to Mailchimp, Klaviyo etc.</p></div>
+  <a href="/admin/subscribers.csv" class="btn btn-ghost">Export CSV</a>
+</div>
+<section class="panel panel-flush">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Email</th><th>Subscribed</th><th></th></tr></thead>
+      <tbody>
+        <% if (!subscribers.length) { %><tr><td colspan="3" class="empty-cell">No subscribers yet.</td></tr><% } %>
+        <% subscribers.forEach(s => { %>
+          <tr>
+            <td><%= s.email %></td>
+            <td><%= formatDate(s.created_at) %></td>
+            <td class="actions"><form action="/admin/subscribers/<%= s.id %>/delete" method="post"><button class="link danger" data-confirm="Remove <%= s.email %>?">Remove</button></form></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('_footer') %>

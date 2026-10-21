@@ -1,0 +1,49 @@
+<%- include('_header') %>
+<div class="page-head">
+  <div><a href="/admin/customers" class="back">‹ Customers</a><h1><%= customer.first_name %> <%= customer.last_name %></h1><p class="muted">Customer since <%= formatDate(customer.created_at) %></p></div>
+  <a href="mailto:<%= customer.email %>" class="btn btn-ghost">Email customer</a>
+</div>
+
+<section class="kpis kpis-3">
+  <div class="kpi"><p class="kpi-label">Total spent</p><p class="kpi-value"><%= money(spent) %></p></div>
+  <div class="kpi"><p class="kpi-label">Orders</p><p class="kpi-value"><%= orders.length %></p></div>
+  <div class="kpi"><p class="kpi-label">Average order</p><p class="kpi-value"><%= money(orders.length ? Math.round(spent / orders.length) : 0) %></p></div>
+</section>
+
+<div class="form-layout">
+  <div class="form-main">
+    <section class="panel panel-flush">
+      <div class="panel-head padded"><h2>Orders</h2></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Order</th><th>Date</th><th>Status</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <% if (!orders.length) { %><tr><td colspan="4" class="empty-cell">No orders yet.</td></tr><% } %>
+            <% orders.forEach(o => { %>
+              <tr class="row-link" data-href="/admin/orders/<%= o.id %>"><td><a href="/admin/orders/<%= o.id %>" class="strong"><%= o.number %></a></td><td><%= formatDate(o.created_at) %></td><td><span class="status status-<%= o.status %>"><%= o.status %></span></td><td class="num"><%= money(o.total) %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <aside class="form-side">
+    <section class="panel">
+      <h2>Contact</h2>
+      <p><a href="mailto:<%= customer.email %>" class="link"><%= customer.email %></a><% if (customer.phone) { %><br><%= customer.phone %><% } %></p>
+      <p class="small"><%= subscribed ? '✓ Subscribed to newsletter' : 'Not subscribed to newsletter' %></p>
+    </section>
+    <% if (address) { %>
+    <section class="panel">
+      <h2>Last delivery address</h2>
+      <address><%= address.address1 %><br><% if (address.address2) { %><%= address.address2 %><br><% } %><%= address.city %><br><%= address.postcode %></address>
+    </section>
+    <% } %>
+    <form action="/admin/customers/<%= customer.id %>/delete" method="post" class="panel">
+      <h2>Delete account</h2>
+      <p class="muted small">Removes their login (e.g. for a GDPR request). Orders are kept for your records.</p>
+      <button class="btn btn-danger btn-block" data-confirm="Delete this customer account?">Delete account</button>
+    </form>
+  </aside>
+</div>
+<%- include('_footer') %>

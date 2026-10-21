@@ -1,0 +1,122 @@
+<%- include('../partials/header') %>
+<%
+  // Build URLs that keep the current filters but change one value
+  const qs = (changes) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) {
+      if (k in changes) continue;
+      [].concat(v).forEach(x => params.append(k, x));
+    }
+    for (const [k, v] of Object.entries(changes)) if (v !== null && v !== '') params.set(k, v);
+    const s = params.toString();
+    return path + (s ? '?' + s : '');
+  };
+  const priceBands = [[0, 50], [50, 100], [100, 250], [250, 500], [500, null]];
+  const activeFilters = selectedFinishes.length || query.min || query.max || query.sale || query.instock;
+%>
+
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <% crumbs.forEach(([label, href]) => { %><span>/</span><% if (href) { %><a href="<%= href %>"><%= label %></a><% } else { %><span aria-current="page"><%= label %></span><% } %><% }) %>
+  </nav>
+
+  <header class="listing-head">
+    <h1><%= title %></h1>
+    <% if (intro) { %><p><%= intro %></p><% } %>
+  </header>
+
+  <% if (subcats.length > 1) { %>
+    <div class="chip-row">
+      <% subcats.forEach(s => { %><a class="chip" href="/c/<%= s.slug %>"><%= s.name %> <span><%= s.n %></span></a><% }) %>
+    </div>
+  <% } %>
+
+  <div class="listing">
+    <aside class="filters" data-filters>
+      <form method="get" action="<%= path %>" id="filter-form">
+        <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+        <input type="hidden" name="sort" value="<%= sort %>">
+        <div class="filters-head">
+          <h2>Filter</h2>
+          <button type="button" class="icon-btn filters-close" data-filters-close aria-label="Close filters">✕</button>
+        </div>
+
+        <details open>
+          <summary>Price</summary>
+          <ul class="filter-list">
+            <% priceBands.forEach(([lo, hi]) => { const on = String(query.min || '') === String(lo || '') && String(query.max || '') === String(hi || ''); %>
+              <li><a href="<%= qs({ min: lo || null, max: hi, page: null }) %>" class="<%= on ? 'on' : '' %>"><%= hi ? `£${lo} – £${hi}` : `£${lo}+` %></a></li>
+            <% }) %>
+          </ul>
+          <div class="price-inputs">
+            <label>Min £<input type="number" name="min" min="0" step="1" value="<%= query.min || '' %>"></label>
+            <label>Max £<input type="number" name="max" min="0" step="1" value="<%= query.max || '' %>"></label>
+          </div>
+        </details>
+
+        <% if (finishes.length) { %>
+        <details open>
+          <summary>Finish / colour</summary>
+          <ul class="filter-list">
+            <% finishes.forEach(f => { %>
+              <li><label class="check"><input type="checkbox" name="finish" value="<%= f.finish %>" <%= selectedFinishes.includes(f.finish) ? 'checked' : '' %> data-autosubmit> <%= f.finish %> <span class="muted">(<%= f.n %>)</span></label></li>
+            <% }) %>
+          </ul>
+        </details>
+        <% } %>
+
+        <details open>
+          <summary>Availability</summary>
+          <ul class="filter-list">
+            <li><label class="check"><input type="checkbox" name="instock" value="1" <%= query.instock ? 'checked' : '' %> data-autosubmit> In stock only</label></li>
+            <li><label class="check"><input type="checkbox" name="sale" value="1" <%= query.sale ? 'checked' : '' %> data-autosubmit> On sale</label></li>
+          </ul>
+        </details>
+
+        <div class="filter-actions">
+          <button class="btn btn-block">Apply filters</button>
+          <% if (activeFilters) { %><a href="<%= path %><%= q ? '?q=' + encodeURIComponent(q) : '' %>" class="link-muted">Clear all</a><% } %>
+        </div>
+      </form>
+    </aside>
+
+    <section class="results">
+      <div class="toolbar">
+        <button class="btn btn-outline btn-sm filters-open" data-filters-open>Filters<%= activeFilters ? ' •' : '' %></button>
+        <p class="result-count"><%= total %> product<%= total === 1 ? '' : 's' %></p>
+        <form method="get" action="<%= path %>" class="sort-form">
+          <% for (const [k, v] of Object.entries(query)) { if (k === 'sort' || k === 'page') continue; [].concat(v).forEach(x => { %><input type="hidden" name="<%= k %>" value="<%= x %>"><% }) } %>
+          <label for="sort">Sort by</label>
+          <select id="sort" name="sort" data-autosubmit>
+            <% [['featured', 'Recommended'], ['price-asc', 'Price: low to high'], ['price-desc', 'Price: high to low'], ['newest', 'Newest'], ['rating', 'Top rated']].forEach(([v, l]) => { %>
+              <option value="<%= v %>" <%= sort === v ? 'selected' : '' %>><%= l %></option>
+            <% }) %>
+          </select>
+        </form>
+      </div>
+
+      <% if (products.length) { %>
+        <div class="product-grid grid-3">
+          <% products.forEach(p => { %><%- include('../partials/product-card', { p }) %><% }) %>
+        </div>
+        <% if (pages > 1) { %>
+          <nav class="pagination" aria-label="Pages">
+            <% if (page > 1) { %><a href="<%= qs({ page: page - 1 }) %>">‹ Prev</a><% } %>
+            <% for (let i = 1; i <= pages; i++) { %>
+              <% if (i === page) { %><span class="current" aria-current="page"><%= i %></span><% } else { %><a href="<%= qs({ page: i }) %>"><%= i %></a><% } %>
+            <% } %>
+            <% if (page < pages) { %><a href="<%= qs({ page: page + 1 }) %>">Next ›</a><% } %>
+          </nav>
+        <% } %>
+      <% } else { %>
+        <div class="empty">
+          <h2>No products found</h2>
+          <p>Try removing a filter, or <a href="/shop">browse everything</a>.</p>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

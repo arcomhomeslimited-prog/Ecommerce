@@ -1,0 +1,13 @@
+<%- include('../../partials/header') %>
+<div class="wrap info-page">
+  <aside class="info-nav">
+    <a href="/about" class="<%= page === 'about' ? 'on' : '' %>">About us</a>
+    <a href="/delivery" class="<%= page === 'delivery' ? 'on' : '' %>">Delivery</a>
+    <a href="/returns" class="<%= page === 'returns' ? 'on' : '' %>">Returns &amp; refunds</a>
+    <a href="/faq" class="<%= page === 'faq' ? 'on' : '' %>">FAQs</a>
+    <a href="/terms" class="<%= page === 'terms' ? 'on' : '' %>">Terms &amp; conditions</a>
+    <a href="/privacy" class="<%= page === 'privacy' ? 'on' : '' %>">Privacy policy</a>
+    <a href="/contact">Contact us</a>
+  </aside>
+  <article class="prose info-body">
+    <h1 class="page-title"><%= title %></h1>
