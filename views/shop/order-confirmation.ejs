@@ -12,6 +12,10 @@
       <p>Your order <strong><%= order.number %></strong> has been placed. We’ve sent a confirmation to <strong><%= order.email %></strong>.</p>
       <% if (order.payment_method === 'bank_transfer') { %>
         <p class="notice">Please pay <strong><%= money(order.total) %></strong> by bank transfer using reference <strong><%= order.number %></strong>. We’ll dispatch as soon as payment clears.</p>
+      <% } else if (order.payment_status === 'paid') { %>
+        <p class="notice">Payment received – thank you. We’ll get your order ready to ship.</p>
+      <% } else if (order.payment_method === 'card') { %>
+        <p class="notice">We’re still confirming your card payment. If you’ve just paid, refresh this page in a moment.</p>
       <% } %>
     </div>
   <% } %>

@@ -3,3 +3,6 @@ data/
 public/uploads/*
 !public/uploads/.gitkeep
 .DS_Store
+.env
+.env.*
+!.env.example

@@ -42,11 +42,11 @@
 
       <section class="card-panel">
         <h2>Payment</h2>
+        <input type="hidden" name="payment_method" value="card">
         <div class="pay-options">
-          <label class="pay-option"><input type="radio" name="payment_method" value="card" <%= form.payment_method !== 'bank_transfer' ? 'checked' : '' %>> <span><strong>Credit / debit card</strong><small>Visa, Mastercard, Amex · demo mode</small></span></label>
-          <label class="pay-option"><input type="radio" name="payment_method" value="bank_transfer" <%= form.payment_method === 'bank_transfer' ? 'checked' : '' %>> <span><strong>Bank transfer</strong><small>We’ll email our bank details – order ships when payment clears</small></span></label>
+          <label class="pay-option"><input type="radio" name="payment_method_display" value="card" checked disabled> <span><strong>Credit / debit card</strong><small>Visa, Mastercard, Amex · secure Stripe Checkout</small></span></label>
         </div>
-        <p class="notice small">Demo store: no real payment is taken. Connect Stripe or PayPal before going live.</p>
+        <% if (errors.payment) { %><p class="error"><%= errors.payment %></p><% } %>
         <label class="check <%= errors.terms ? 'has-error' : '' %>"><input type="checkbox" name="terms" value="1"> I agree to the <a href="/terms" target="_blank">terms &amp; conditions</a> and <a href="/privacy" target="_blank">privacy policy</a></label>
         <% if (errors.terms) { %><small class="error"><%= errors.terms %></small><% } %>
       </section>

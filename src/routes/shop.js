@@ -3,6 +3,7 @@ const { db, getSettings, transaction } = require('../db');
 const {
   PRODUCT_SELECT, productImages, getCart, evaluateDiscount, orderNumber, isUkPostcode, isEmail
 } = require('../helpers');
+const { createCheckoutSession, confirmSessionPayment, getStripe } = require('../stripe');
 
 const router = express.Router();
 const PAGE_SIZE = 12;
@@ -182,15 +183,25 @@ router.post('/basket/discount', (req, res) => {
 router.get('/checkout', (req, res) => {
   const cart = getCart(req.session);
   if (!cart.items.length) return res.redirect('/basket');
+  if (req.query.cancelled === '1') {
+    req.flash('error', 'Payment was cancelled. You can try again when you’re ready.');
+    return res.redirect('/checkout');
+  }
   let defaults = {};
   if (res.locals.user) {
     const last = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(res.locals.user.id) || {};
     defaults = { ...last, email: res.locals.user.email, first_name: res.locals.user.first_name, last_name: res.locals.user.last_name };
   }
-  res.render('shop/checkout', { title: 'Checkout', cart, form: defaults, errors: {} });
+  res.render('shop/checkout', {
+    title: 'Checkout',
+    cart,
+    form: defaults,
+    errors: {},
+    stripeEnabled: !!getStripe()
+  });
 });
 
-router.post('/checkout', (req, res) => {
+router.post('/checkout', async (req, res) => {
   const cart = getCart(req.session);
   if (!cart.items.length) return res.redirect('/basket');
 
@@ -207,7 +218,7 @@ router.post('/checkout', (req, res) => {
   if (!f.city) errors.city = 'Required';
   if (!isUkPostcode(f.postcode)) errors.postcode = 'Enter a valid UK postcode';
   if (!req.body.terms) errors.terms = 'Please accept the terms to continue';
-  if (!['card', 'bank_transfer'].includes(f.payment_method)) f.payment_method = 'card';
+  f.payment_method = 'card';
 
   // Re-check stock at the moment of ordering
   for (const item of cart.items) {
@@ -215,14 +226,23 @@ router.post('/checkout', (req, res) => {
     if (stock < item.qty) errors.stock = `Sorry, only ${stock} of “${item.product.name}” left in stock. Please update your basket.`;
   }
 
+  if (!getStripe()) {
+    errors.payment = 'Card payments are not configured. Please try again later.';
+  }
+
   if (Object.keys(errors).length) {
-    return res.status(400).render('shop/checkout', { title: 'Checkout', cart, form: f, errors });
+    return res.status(400).render('shop/checkout', {
+      title: 'Checkout',
+      cart,
+      form: f,
+      errors,
+      stripeEnabled: !!getStripe()
+    });
   }
 
   const number = orderNumber();
+
   transaction(() => {
-    // Demo payment: card orders are marked paid immediately. Connect Stripe/PayPal here for live payments.
-    const paid = f.payment_method === 'card';
     const orderId = Number(db.prepare(`INSERT INTO orders
       (number, user_id, email, first_name, last_name, phone, address1, address2, city, county, postcode,
        subtotal, discount, shipping, total, vat, discount_code, status, payment_method, payment_status, customer_notes)
@@ -230,7 +250,7 @@ router.post('/checkout', (req, res) => {
       number, res.locals.user ? res.locals.user.id : null, f.email, f.first_name, f.last_name, f.phone,
       f.address1, f.address2, f.city, f.county, f.postcode,
       cart.subtotal, cart.discount, cart.shipping, cart.total, cart.vat, cart.discountCode || '',
-      paid ? 'paid' : 'pending', f.payment_method, paid ? 'paid' : 'unpaid', f.customer_notes
+      'pending', 'card', 'unpaid', f.customer_notes
     ).lastInsertRowid);
     const insItem = db.prepare('INSERT INTO order_items (order_id, product_id, name, sku, finish, image, price, qty) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     const decStock = db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
@@ -239,19 +259,49 @@ router.post('/checkout', (req, res) => {
       decStock.run(qty, p.id);
     }
     if (cart.discountCode) db.prepare('UPDATE discount_codes SET uses = uses + 1 WHERE code = ?').run(cart.discountCode);
-    db.prepare('INSERT INTO order_events (order_id, status, note) VALUES (?, ?, ?)').run(orderId, 'pending', 'Order placed online');
-    if (paid) db.prepare('INSERT INTO order_events (order_id, status, note) VALUES (?, ?, ?)').run(orderId, 'paid', 'Card payment received');
+    db.prepare('INSERT INTO order_events (order_id, status, note) VALUES (?, ?, ?)').run(
+      orderId, 'pending', 'Order placed – awaiting Stripe payment'
+    );
   });
 
-  req.session.cart = {};
-  delete req.session.discount;
   req.session.lastOrder = number;
-  res.redirect(`/order/${number}`);
+
+  try {
+    const session = await createCheckoutSession(req, {
+      orderNumber: number,
+      email: f.email,
+      cart
+    });
+    // Keep cart until payment succeeds so cancel can return to checkout with items
+    return res.redirect(303, session.url);
+  } catch (err) {
+    console.error('Stripe Checkout error:', err);
+    req.flash('error', 'We couldn’t start card payment. Please try again.');
+    return res.redirect('/checkout');
+  }
 });
 
-router.get('/order/:number', (req, res, next) => {
-  const order = db.prepare('SELECT * FROM orders WHERE number = ?').get(req.params.number);
+router.get('/order/:number', async (req, res, next) => {
+  let order = db.prepare('SELECT * FROM orders WHERE number = ?').get(req.params.number);
   if (!order) return next();
+
+  const sessionId = String(req.query.session_id || '').trim();
+  if (sessionId && order.payment_status !== 'paid') {
+    try {
+      await confirmSessionPayment(sessionId);
+      order = db.prepare('SELECT * FROM orders WHERE number = ?').get(req.params.number);
+    } catch (err) {
+      console.error('Stripe session confirm error:', err);
+    }
+  }
+
+  // After successful Stripe pay, clear the basket
+  if (sessionId && order.payment_status === 'paid') {
+    req.session.cart = {};
+    delete req.session.discount;
+    req.session.lastOrder = order.number;
+  }
+
   const ownsOrder = req.session.lastOrder === order.number || (res.locals.user && res.locals.user.id === order.user_id);
   if (!ownsOrder) return next();
   const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);

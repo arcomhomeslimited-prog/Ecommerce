@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
@@ -7,6 +9,7 @@ const cookieSession = require('cookie-session');
 const { db, getSettings } = require('./src/db');
 const helpers = require('./src/helpers');
 const seed = require('./src/seed');
+const stripeWebhook = require('./src/routes/stripe-webhook');
 
 // First run: populate the store with demo data
 seed.run();
@@ -29,6 +32,18 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
+
+// Keep-alive for Render free tier (ping every ~30 min so the service does not sleep)
+app.get('/health', (req, res) => {
+  res.status(200).json({ ok: true, ts: new Date().toISOString() });
+});
+app.get('/ping', (req, res) => {
+  res.status(200).type('text').send('ok');
+});
+
+// Stripe webhook needs the raw body for signature verification (before urlencoded/json parsers)
+app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
+
 app.use(express.urlencoded({ extended: false, limit: '200kb' }));
 app.use((req, res, next) => { req.body ??= {}; next(); }); // Express 5 leaves body undefined when a POST has no form data
 app.use(cookieSession({
@@ -53,6 +68,7 @@ app.use((req, res, next) => {
 // CSRF protection: reject cross-site form posts (session cookie is also SameSite=Lax)
 app.use((req, res, next) => {
   if (req.method !== 'POST') return next();
+  if (req.path === '/webhooks/stripe') return next();
   const source = req.get('origin') || req.get('referer');
   if (source) {
     try {

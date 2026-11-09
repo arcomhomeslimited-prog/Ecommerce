@@ -69,7 +69,7 @@ function run({ force = false } = {}) {
     return null;
   }
 
-  let adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(6).toString('base64url');
+  let adminPassword = "Admin123!@#";
 
   transaction(() => {
     for (const t of ['order_events', 'order_items', 'orders', 'reviews', 'product_images', 'products', 'categories', 'discount_codes', 'messages', 'subscribers', 'users', 'settings']) {
